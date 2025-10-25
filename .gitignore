@@ -1,0 +1,12 @@
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
+
+.DS_Store
+Thumbs.db
+
+.env
+.vscode/
+.idea/
