@@ -24,6 +24,11 @@ services:
     extends:
       file: compose.yaml
       service: web
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://api:8000/api}
+      NEXT_PUBLIC_MANAGER_BASE_URL: ${NEXT_PUBLIC_MANAGER_BASE_URL:-http://manager:8000/api}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"

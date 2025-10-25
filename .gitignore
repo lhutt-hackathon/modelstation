@@ -4,6 +4,8 @@
 *.orig
 *.tmp
 
+web/node_modules/
+web/.next/
 .DS_Store
 Thumbs.db
 
