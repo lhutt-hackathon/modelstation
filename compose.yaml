@@ -28,8 +28,11 @@ services:
       context: web
       dockerfile: Dockerfile
     environment:
+      DATABASE_URL: ${WEB_DATABASE_URL:-file:./prisma/dev.db}
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://api:8000/api}
       NEXT_PUBLIC_MANAGER_BASE_URL: ${NEXT_PUBLIC_MANAGER_BASE_URL:-http://manager:8000/api}
+    volumes:
+      - web-db:/app/prisma
     depends_on:
       - api
       - manager
@@ -43,3 +46,6 @@ services:
         - action: rebuild
           path: web/package-lock.json
     restart: always
+
+volumes:
+  web-db:

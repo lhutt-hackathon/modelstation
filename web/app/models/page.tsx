@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRightIcon,
   DatabaseIcon,
@@ -23,82 +24,11 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 
-const modelPortfolio = [
-  {
-    name: "Atlas QA Compliance Copilot",
-    domain: "Pharma QA & batch release",
-    baseModel: "GPT-4.1 Enterprise",
-    dataset: "Pharma Compliance QA v9",
-    status: "Live",
-    lastTrained: "3 days ago",
-    metrics: ["98.2% rubric adherence", "37 sec MTTR delta"],
-    highlights: ["Auto-summarises CAPA resolutions", "Cross-checks protocol clauses in 11 jurisdictions"]
-  },
-  {
-    name: "AeroWave Flight Line Specialist",
-    domain: "Aviation maintenance & AOG triage",
-    baseModel: "Claude 3 Sonnet",
-    dataset: "Aviation Maintenance Runbooks v4",
-    status: "Pilot",
-    lastTrained: "8 days ago",
-    metrics: ["92.7% tool-call accuracy", "38% faster torque sequencing"],
-    highlights: ["Pushes real-time task cards to AMOS", "Bilingual troubleshooting guidance"]
-  },
-  {
-    name: "Sentinel Flow Surveillance Analyst",
-    domain: "Capital markets risk & compliance",
-    baseModel: "Mistral Large 2",
-    dataset: "Trading Surveillance Escalations v6",
-    status: "QA",
-    lastTrained: "Yesterday",
-    metrics: ["99.1% policy precision", "5.4% false positive reduction"],
-    highlights: ["Structured SAR narratives", "Tier-1 escalation briefings with citations"]
-  }
-] as const;
-
-const roadmapItems = [
-  {
-    title: "Underwriting synthesis pilot",
-    eta: "Week of Oct 21",
-    owner: "Insurance Ops",
-    detail: "Fine-tune on 1.7M annotated claims & policy deltas to recommend coverage decisions with auditable factors."
-  },
-  {
-    title: "Multilingual compliance expansion",
-    eta: "Nov 4",
-    owner: "RegOps",
-    detail: "Extend Atlas QA Copilot with Spanish & Mandarin corpora plus region-specific policy guardrails."
-  },
-  {
-    title: "Tool-grounded agentic workflows",
-    eta: "Mid-Nov",
-    owner: "Automation Guild",
-    detail: "Introduce chained tool-calls for reconciliation, evidence gathering, and auto-ticket closure in ServiceNow."
-  }
-] as const;
-
-const highlightStats = [
-  {
-    title: "Models in production",
-    value: "14",
-    description: "Live copilots maintained across pharma, aviation, finance, and operations playbooks.",
-    icon: RocketIcon
-  },
-  {
-    title: "Median fine-tune window",
-    value: "11 days",
-    description: "From scoping brief to deployment-ready checkpoint with human sign-off.",
-    icon: GaugeCircleIcon
-  },
-  {
-    title: "Reusable components",
-    value: "63%",
-    description: "Shared tool schemas, eval suites, and prompts reused across the portfolio.",
-    icon: LayersIcon
-  }
-] as const;
+// Force dynamic rendering since we need database access
+export const dynamic = 'force-dynamic';
 
 const statusStyles: Record<string, string> = {
   Live: "bg-emerald-500/15 text-emerald-500",
@@ -106,7 +36,31 @@ const statusStyles: Record<string, string> = {
   QA: "bg-amber-500/15 text-amber-500"
 };
 
-export default function ModelsPage() {
+const highlightIconMap: Record<string, LucideIcon> = {
+  RocketIcon,
+  GaugeCircleIcon,
+  LayersIcon
+};
+
+export default async function ModelsPage() {
+  const [rawModels, roadmapItems, highlightRecords] = await Promise.all([
+    prisma.model.findMany({ orderBy: { name: "asc" } }),
+    prisma.roadmapItem.findMany({ orderBy: { eta: "asc" } }),
+    prisma.highlightStat.findMany({ orderBy: { title: "asc" } })
+  ]);
+
+  // Parse JSON strings back to arrays
+  const models = rawModels.map((model) => ({
+    ...model,
+    metrics: JSON.parse(model.metrics) as string[],
+    highlights: JSON.parse(model.highlights) as string[],
+  }));
+
+  const highlightStats = highlightRecords.map((stat) => ({
+    ...stat,
+    icon: highlightIconMap[stat.iconKey] ?? SparklesIcon
+  }));
+
   return (
     <div className="relative overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-80">
@@ -145,22 +99,42 @@ export default function ModelsPage() {
         </section>
 
         <section className="grid gap-6 md:grid-cols-3">
-          {highlightStats.map((stat) => (
-            <Card key={stat.title} className="border border-border/70 bg-card/90 shadow-sm backdrop-blur">
-              <CardHeader className="space-y-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
-                  <stat.icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <CardTitle className="text-2xl font-semibold">{stat.value}</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">{stat.title}</CardDescription>
-                </div>
+          {highlightStats.length > 0 ? (
+            highlightStats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <Card key={stat.id} className="border border-border/70 bg-card/90 shadow-sm backdrop-blur">
+                  <CardHeader className="space-y-4">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <CardTitle className="text-2xl font-semibold">{stat.value}</CardTitle>
+                      <CardDescription className="text-sm text-muted-foreground">{stat.title}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{stat.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Card className="md:col-span-3 border border-border/70 bg-card/90 shadow-sm backdrop-blur">
+              <CardHeader className="space-y-2">
+                <CardTitle className="text-xl font-semibold">No highlights yet</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Seed the database to showcase production metrics across your model portfolio.
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed">{stat.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  Run <code>npm run db:seed</code> after pushing the schema to populate the default highlight cards.
+                </p>
               </CardContent>
             </Card>
-          ))}
+          )}
         </section>
 
         <Tabs defaultValue="portfolio" className="space-y-10">
@@ -189,35 +163,45 @@ export default function ModelsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {modelPortfolio.map((model) => (
-                      <TableRow key={model.name}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-foreground">{model.name}</span>
-                            <span className="text-xs text-muted-foreground">{model.metrics.join(" • ")}</span>
-                          </div>
+                    {models.length > 0 ? (
+                      models.map((model) => (
+                        <TableRow key={model.id}>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-foreground">{model.name}</span>
+                              {model.metrics.length > 0 ? (
+                                <span className="text-xs text-muted-foreground">{model.metrics.join(" • ")}</span>
+                              ) : null}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{model.domain}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{model.baseModel}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <DatabaseIcon className="h-4 w-4 text-muted-foreground/70" />
+                              {model.dataset}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={cn(
+                                "border-none px-2 py-1 text-xs font-medium",
+                                statusStyles[model.status] ?? "bg-muted text-muted-foreground"
+                              )}
+                            >
+                              {model.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{model.lastTrained}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                          No models found. Push the schema and seed data to explore the sample portfolio.
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{model.domain}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{model.baseModel}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <DatabaseIcon className="h-4 w-4 text-muted-foreground/70" />
-                            {model.dataset}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={cn(
-                              "border-none px-2 py-1 text-xs font-medium",
-                              statusStyles[model.status] ?? "bg-muted text-muted-foreground"
-                            )}
-                          >
-                            {model.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{model.lastTrained}</TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                   <TableCaption>
                     Explore run histories and evaluation artifacts inside each model card. Guardrail deltas are archived
@@ -233,24 +217,36 @@ export default function ModelsPage() {
                 <CardDescription>Key behaviors these copilots have unlocked inside enterprise workflows.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-3">
-                {modelPortfolio.map((model) => (
-                  <div key={model.name} className="rounded-lg border border-border/60 bg-background/40 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{model.name.split(" ").slice(0, 2).join(" ")}</p>
-                        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground/80">{model.status}</p>
+                {models.length > 0 ? (
+                  models.map((model) => (
+                    <div key={model.id} className="rounded-lg border border-border/60 bg-background/40 p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {model.name.split(" ").slice(0, 2).join(" ")}
+                          </p>
+                          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground/80">{model.status}</p>
+                        </div>
+                        <SparklesIcon className="h-4 w-4 text-primary" />
                       </div>
-                      <SparklesIcon className="h-4 w-4 text-primary" />
+                      <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                        {model.highlights.length > 0 ? (
+                          model.highlights.map((highlight) => (
+                            <li key={highlight} className="leading-relaxed">
+                              {highlight}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="leading-relaxed text-muted-foreground/70">No highlight summary yet.</li>
+                        )}
+                      </ul>
                     </div>
-                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                      {model.highlights.map((highlight) => (
-                        <li key={highlight} className="leading-relaxed">
-                          {highlight}
-                        </li>
-                      ))}
-                    </ul>
+                  ))
+                ) : (
+                  <div className="md:col-span-3 rounded-lg border border-border/60 bg-background/40 p-6 text-sm text-muted-foreground">
+                    Create or seed models to surface their signature workflows in this section.
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -266,18 +262,24 @@ export default function ModelsPage() {
                 <CardDescription>Coordinated fine-tunes and feature upgrades currently in the queue.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {roadmapItems.map((item) => (
-                  <div key={item.title} className="rounded-lg border border-border/60 bg-background/40 p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Badge variant="outline" className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                        {item.eta}
-                      </Badge>
-                      <span className="text-sm font-semibold text-foreground">{item.title}</span>
-                      <span className="text-xs text-muted-foreground">Owner: {item.owner}</span>
+                {roadmapItems.length > 0 ? (
+                  roadmapItems.map((item) => (
+                    <div key={item.id} className="rounded-lg border border-border/60 bg-background/40 p-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Badge variant="outline" className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                          {item.eta}
+                        </Badge>
+                        <span className="text-sm font-semibold text-foreground">{item.title}</span>
+                        <span className="text-xs text-muted-foreground">Owner: {item.owner}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
+                  ))
+                ) : (
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground">
+                    No roadmap entries yet. Seed or create upcoming experiments to track launch timelines.
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
 

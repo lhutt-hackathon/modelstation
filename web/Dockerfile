@@ -1,11 +1,14 @@
 FROM node:20-bookworm-slim AS base
 
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS deps
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -13,6 +16,7 @@ RUN npm ci
 FROM base AS builder
 
 COPY package.json package-lock.json ./
+COPY prisma ./prisma
 RUN npm ci
 COPY . .
 RUN NODE_ENV=production npm run build
@@ -35,6 +39,7 @@ COPY --chown=nextjs:nextjs --from=builder /app/app ./app
 COPY --chown=nextjs:nextjs --from=builder /app/components ./components
 COPY --chown=nextjs:nextjs --from=builder /app/hooks ./hooks
 COPY --chown=nextjs:nextjs --from=builder /app/lib ./lib
+COPY --chown=nextjs:nextjs --from=builder /app/prisma ./prisma
 COPY --chown=nextjs:nextjs --from=builder /app/global.css ./global.css
 COPY --chown=nextjs:nextjs --from=builder /app/postcss.config.js ./postcss.config.js
 COPY --chown=nextjs:nextjs --from=builder /app/tailwind.config.ts ./tailwind.config.ts

@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  models    Model[]
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Model {
+  id          String   @id @default(cuid())
+  name        String
+  domain      String
+  baseModel   String
+  dataset     String
+  status      String
+  lastTrained String
+  metrics     String   @default("[]")
+  highlights  String   @default("[]")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model RoadmapItem {
+  id      String   @id @default(cuid())
+  title   String
+  eta     String
+  owner   String
+  detail  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HighlightStat {
+  id          String   @id @default(cuid())
+  title       String
+  value       String
+  description String
+  iconKey     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
