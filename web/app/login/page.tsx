@@ -108,7 +108,7 @@ function LoginView() {
             <CardDescription className="text-sm text-muted-foreground">
               {mode === "login"
                 ? "Use your email address and password to access ModelStation."
-                : "Spin up a sandboxed workspace so you can orchestrate datasets and models."}
+                : "Spin up a sandboxed workspace so you can orchestrate model fine-tunes end-to-end."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -186,18 +186,18 @@ function LoginView() {
           <CardHeader className="space-y-3">
             <CardTitle className="text-2xl font-semibold">Why sign in?</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              Access a private workspace with your datasets, models, and evaluation artifacts. Everything stays isolated
-              to your account.
+              Access a private workspace with your models, training briefs, and evaluation artifacts. Everything stays
+              isolated to your account.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 text-sm text-muted-foreground">
             <div>
               <p className="font-medium text-foreground">Manage your portfolio</p>
-              <p>Spin up datasets, launch fine-tunes, and review evaluation outcomes from one dashboard.</p>
+              <p>Launch fine-tunes, scope the data runs that fuel them, and review evaluation outcomes from one dashboard.</p>
             </div>
             <div>
               <p className="font-medium text-foreground">Guardrailed access</p>
-              <p>Workspace membership controls who can edit policies, datasets, and deployment-ready checkpoints.</p>
+              <p>Workspace membership controls who can edit policies, training briefs, and deployment-ready checkpoints.</p>
             </div>
             <div>
               <p className="font-medium text-foreground">Stay audit ready</p>

@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (!name || !domain || !baseModel || !dataset) {
       return NextResponse.json(
-        { error: "Name, domain, baseModel, and dataset are required" },
+        { error: "Name, domain, baseModel, and a training data brief are required" },
         { status: 400 }
       );
     }

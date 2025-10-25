@@ -4,9 +4,7 @@ import {
   ActivityIcon,
   ArrowRightIcon,
   BadgeCheckIcon,
-  DatabaseIcon,
   FactoryIcon,
-  LineChartIcon,
   MicroscopeIcon,
   ShieldCheckIcon
 } from "lucide-react";
@@ -28,49 +26,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const featureHighlights = [
   {
-    title: "Datasets engineered for 20M+ parameter mastery",
+    title: "Operator-grade intake",
     description:
-      "We synthesize dense, high-signal corpora that saturate every parameter with examples mapped to your exact operating constraints.",
-    icon: DatabaseIcon
+      "Intake templates capture objectives, policies, and success metrics before any training run begins.",
+    icon: ActivityIcon
   },
   {
-    title: "Precision labels from domain intelligence",
+    title: "Data runs scoped per model",
     description:
-      "Every task is annotated with proprietary heuristics, human-in-the-loop adjudication, and contradiction sweeps to eradicate ambiguity.",
+      "Each fine-tune spins up a dedicated data pipeline so training corpora never bleed across domains.",
     icon: MicroscopeIcon
   },
   {
-    title: "Guarantees on transfer and impact",
+    title: "Governed deployment loops",
     description:
-      "Dataset briefs ship with performance forecasts, safety deltas, and uplift projections so your fine-tune ROI is measurable before the first epoch.",
-    icon: LineChartIcon
+      "Guardrails, evaluation suites, and rollout playbooks ship alongside every checkpoint.",
+    icon: ShieldCheckIcon
   }
 ] as const;
 
-const pipelinePhases = [
+const fineTunePhases = [
   {
-    title: "Signal harvesting",
+    title: "Model intake",
     detail:
-      "Mine institutional wikis, SOPs, transcripts, and error logs. Our agents normalize domain jargon and detect latent task archetypes.",
-    metric: "26 content streams aggregated per engagement."
+      "Codify objectives, risk surfaces, stakeholders, and success metrics so every downstream artifact ties to the right outcomes.",
+    metric: "Intake complete in 48 hours on average."
   },
   {
-    title: "Scenario explosion",
+    title: "Dedicated data run",
     detail:
-      "Generate adversarial dialogues, edge-case prompts, and conflicting intents to stress every branch of the task graph.",
-    metric: "7.5M distilled interactions per deployment on average."
+      "Source, synthesize, and QA examples exclusively for this model. We enforce policy guardrails and provenance on every sample.",
+    metric: "3.1M curated interactions delivered per run."
   },
   {
-    title: "Label enforcement",
+    title: "Training loop",
     detail:
-      "Apply deterministic rule engines, human stewards, and contradiction sweeps to enforce one canonical resolution per scenario.",
-    metric: "97.2% agreement across triple-pass adjudication."
+      "Execute LoRA or full fine-tunes, monitor gradients in-flight, and benchmark deltas against negotiated success criteria.",
+    metric: "Median fine-tune window: 11 days."
   },
   {
-    title: "Simulation & vetting",
+    title: "Evaluation & release",
     detail:
-      "Pass datasets through policy firewalls, safety classifiers, and synthetic runs against base checkpoints to predict gradient behavior.",
-    metric: "Performance delta forecasted ±1.3% error."
+      "Ship multi-layer evaluations, human review sign-offs, and rollout rehearsals before the checkpoint touches production.",
+    metric: "100% of launches include human-in-the-loop QA."
   }
 ] as const;
 
@@ -110,26 +108,26 @@ const industryPlaybooks = [
   }
 ] as const;
 
-const datasetStats = [
+const trainingStats = [
   {
-    columnOne: "Median dataset volume",
-    columnTwo: "22.6M structured sequences",
-    columnThree: "Balanced across prompt, dialogue, tool-call, and evaluator layers."
+    columnOne: "Intake to launch",
+    columnTwo: "11.2 days",
+    columnThree: "Includes bespoke data run, training cycles, and evaluation gates."
   },
   {
-    columnOne: "Gold-label coverage",
-    columnTwo: "92.4%",
-    columnThree: "Human-verified or heuristic-backed outcomes per scenario."
+    columnOne: "Average curated records",
+    columnTwo: "3.1M samples",
+    columnThree: "Structured across dialogues, tool calls, evaluator prompts, and policy injects."
   },
   {
-    columnOne: "Task diversity index",
-    columnTwo: "0.81",
-    columnThree: "Shannon entropy across micro-task taxonomies."
+    columnOne: "Precision review rate",
+    columnTwo: "97.4%",
+    columnThree: "Triple-pass adjudication plus contradiction sweeps on critical paths."
   },
   {
-    columnOne: "Safety & policy injects",
-    columnTwo: "1.4M stress tests",
-    columnThree: "Red-teamed prompts spanning abuse, compliance, and brand guardrails."
+    columnOne: "Human QA sign-off",
+    columnTwo: "100%",
+    columnThree: "Every launch packages reviewer notes and provenance receipts."
   }
 ] as const;
 
@@ -142,32 +140,32 @@ const modelStudioHighlights = [
   {
     title: "Guardrailed by default",
     description:
-      "Policy packs and jurisdictional guardrails carry over from your dataset brief, so every response ships compliant.",
+      "Policy packs, data exclusions, and jurisdictional guardrails follow the model from intake through deployment.",
     icon: ShieldCheckIcon
   },
   {
     title: "Fast iteration loops",
     description:
-      "One-click retraining spins up new checkpoints, benchmarks deltas, and notifies stakeholders before release.",
+      "One-click retraining spins up fresh data runs, benchmarks deltas, and notifies stakeholders before release.",
     icon: ActivityIcon
   }
 ] as const;
 
 const faqEntries = [
   {
-  question: "How bespoke are the datasets?",
+  question: "How bespoke is the training data per model?",
     answer:
-      "Every engagement is grounded in your proprietary material, error clips, and real transaction history. We never cross-contaminate domains—each dataset is isolated, encrypted, and purged post-delivery."
+      "Every engagement is grounded in your proprietary material, error clips, and real transaction history. Runs stay siloed—each corpus is isolated, encrypted, and purged once the model ships."
   },
   {
     question: "Do you fine-tune the model too?",
     answer:
-      "We hand the dataset off with tuning briefs, eval suites, and LoRA recipes. If you need us to run the training loop we can coordinate, but our sweet spot is providing the ultra-specific data foundation."
+      "Yes. Intake triggers a full pipeline: scoped data run, training loop, evaluation stack, and readiness review. You get a deployable checkpoint with all supporting artifacts."
   },
   {
     question: "What about governance and traceability?",
     answer:
-      "Every sample ships with provenance metadata, policy compliance tags, and reviewer signatures. Auditors can trace any generated output back to the exact prompt lineage."
+      "Every sample ships with provenance metadata, policy compliance tags, and reviewer signatures. Auditors can trace any model output back to the exact prompt lineage."
   }
 ] as const;
 
@@ -187,15 +185,15 @@ export default function Page() {
             variant="outline"
             className="mx-auto flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/70 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground"
           >
-            Dataset orchestration for surgical fine-tuning
+            Model operations without guesswork
           </Badge>
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              [placeholder]
+              Fine-tune copilots with data built just for them
             </h1>
             <p className="mx-auto max-w-3xl text-base text-muted-foreground">
-              We build 20+ million parameter datasets that let enterprises fine-tune ultra-specific models capable of
-              automating the tasks nobody else can touch. No generic corpora—only surgically precise training fuel.
+              ModelStation runs the full stack for enterprise fine-tuning. Each model gets its own data run, guardrails,
+              and evaluation harness—packaged with the governance artifacts your stakeholders demand.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
@@ -206,7 +204,7 @@ export default function Page() {
             <Button asChild variant="ghost">
               <Link href="/models">Explore model studio</Link>
             </Button>
-            <Button variant="outline">Download dataset brief</Button>
+            <Button variant="outline">Download fine-tune checklist</Button>
           </div>
         </header>
 
@@ -233,13 +231,13 @@ export default function Page() {
         <section id="pipeline" className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
           <Card className="border border-border/70 bg-card shadow-sm">
             <CardHeader>
-              <CardTitle>Our dataset pipeline</CardTitle>
+              <CardTitle>Our fine-tune pipeline</CardTitle>
               <CardDescription>
-                A four-stage system purpose-built to deliver ultra-specific coverage for high-stakes automation.
+                A four-stage runbook purpose-built to deliver model-specific data, checkpoints, and evaluation artifacts.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {pipelinePhases.map((phase, index) => (
+              {fineTunePhases.map((phase, index) => (
                 <div key={phase.title} className="rounded-lg border border-border/60 bg-background/30 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
@@ -261,14 +259,14 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Compliance scaffolding</CardTitle>
               <CardDescription>
-                Every dataset is prepared for audits, security reviews, and on-prem deployment from day zero.
+                Every training run is prepared for audits, security reviews, and on-prem deployment from day zero.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-foreground">Immutable provenance</p>
                 <p className="text-sm text-muted-foreground">
-                  Lineage metadata, review trails, and consent tags are attached to each row to meet regulatory
+                  Lineage metadata, review trails, and consent tags are attached to each sample to meet regulatory
                   expectations across finance, healthcare, and public sector.
                 </p>
               </div>
@@ -294,7 +292,7 @@ export default function Page() {
           <Tabs defaultValue="playbooks" className="w-full">
             <TabsList className="mb-6 bg-card/80">
               <TabsTrigger value="playbooks">Industry playbooks</TabsTrigger>
-              <TabsTrigger value="metrics">Dataset metrics</TabsTrigger>
+              <TabsTrigger value="metrics">Training metrics</TabsTrigger>
             </TabsList>
             <TabsContent value="playbooks">
               <div className="grid gap-6 md:grid-cols-3">
@@ -330,7 +328,7 @@ export default function Page() {
                 <CardHeader>
                   <CardTitle>Delivery profile</CardTitle>
                   <CardDescription>
-                    Benchmarks captured across the last twelve enterprise datasets pushed to clients.
+                    Benchmarks captured across the last twelve enterprise fine-tunes pushed to clients.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -343,7 +341,7 @@ export default function Page() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {datasetStats.map((stat) => (
+                      {trainingStats.map((stat) => (
                         <TableRow key={stat.columnOne}>
                           <TableCell className="font-medium text-foreground">{stat.columnOne}</TableCell>
                           <TableCell>{stat.columnTwo}</TableCell>
@@ -365,12 +363,11 @@ export default function Page() {
             </Badge>
             <div className="space-y-3">
               <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                From dataset to deployed model – all in one workspace
+                From intake to deployed model — all in one workspace
               </h2>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                When your dataset lands, spin up a governed fine-tune, enforce guardrails, and ship a production-ready
-                copilot without leaving ModelStation. The studio reuses every evaluation, prompt, and policy artifact we
-                craft together.
+                Intake requests, scoped data runs, fine-tunes, and evaluations stay linked inside ModelStation. You see
+                every artifact that lands in production—and the lineage that gets it there.
               </p>
             </div>
             <Button asChild className="px-6">
@@ -468,7 +465,7 @@ export default function Page() {
                 <CardTitle className="text-2xl font-semibold">Bring us your most unforgiving workflow</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
                   In a 45 minute session we will surface the task graph, align on constraints, and deliver a scoping plan
-                  for the dataset your model deserves.
+                  for the fine-tune your model deserves.
                 </CardDescription>
               </div>
             </div>

@@ -28,14 +28,6 @@ const baseModelOptions = [
   { value: "custom", label: "Bring your own checkpoint" }
 ];
 
-const datasetOptions = [
-  { value: "pharma-compliance-v9", label: "Pharma Compliance QA v9" },
-  { value: "aerospace-mro-v4", label: "Aviation Maintenance Runbooks v4" },
-  { value: "trading-surveillance-v6", label: "Trading Surveillance Escalations v6" },
-  { value: "support-escalations-v3", label: "Customer Escalations SFT v3" },
-  { value: "new", label: "Request bespoke dataset" }
-];
-
 const evaluationSuiteOptions = [
   "Policy alignment harness",
   "Edge-case adversarial chat",
@@ -49,7 +41,7 @@ const selectStyles =
 type FormState = {
   name: string;
   baseModel: string;
-  dataset: string;
+  datasetBrief: string;
   objective: string;
   success: string;
   notes: string;
@@ -61,7 +53,7 @@ type FormState = {
 const defaultState: FormState = {
   name: "",
   baseModel: baseModelOptions[0]?.value ?? "",
-  dataset: datasetOptions[0]?.value ?? "",
+  datasetBrief: "",
   objective: "",
   success: "",
   notes: "",
@@ -106,12 +98,10 @@ export function CreateModelForm() {
 
     const baseModelLabel =
       baseModelOptions.find((option) => option.value === formState.baseModel)?.label ?? formState.baseModel;
-    const datasetLabel = datasetOptions.find((option) => option.value === formState.dataset)?.label ?? "Bespoke dataset";
-
     createModel({
       name: formState.name.trim(),
       baseModel: baseModelLabel,
-      dataset: datasetLabel,
+      dataset: formState.datasetBrief.trim(),
       objective: formState.objective.trim(),
       successCriteria: formState.success.trim(),
       guardrailsEnabled: formState.enableGuardrails,
@@ -198,22 +188,19 @@ export function CreateModelForm() {
             </FieldContent>
           </Field>
 
-          <Field orientation="responsive">
-            <FieldTitle>Dataset pairing</FieldTitle>
+          <Field>
+            <FieldTitle>Model-specific data brief</FieldTitle>
             <FieldContent>
-              <select
-                className={cn(selectStyles)}
-                value={formState.dataset}
-                onChange={(event) => handleChange("dataset")(event.target.value)}
-              >
-                {datasetOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <Textarea
+                value={formState.datasetBrief}
+                onChange={(event) => handleChange("datasetBrief")(event.target.value)}
+                placeholder="Outline the proprietary sources, synthetic coverage, and policy guardrails we should build into this model's dataset run."
+                rows={4}
+                required
+              />
               <FieldDescription>
-                Pair a curated dataset with this run. “Request bespoke dataset” opens a new orchestration ticket.
+                We generate a dedicated dataset for each fine-tune. Capture the data we should mobilize and any exclusions
+                upfront.
               </FieldDescription>
             </FieldContent>
           </Field>

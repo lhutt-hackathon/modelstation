@@ -11,15 +11,6 @@ import {
 
 const TOKEN_STORAGE_KEY = "modelstation:token";
 
-export type DatasetRecord = {
-  id: string;
-  name: string;
-  focus: string;
-  records: number;
-  status: "Scoping" | "Sourcing" | "Labeling" | "Vetting" | "Delivered";
-  updatedAt: string;
-};
-
 export type ModelRecord = {
   id: string;
   name: string;
@@ -42,7 +33,6 @@ export type UserAccount = {
   name: string;
   role: string;
   models: ModelRecord[];
-  datasets: DatasetRecord[];
 };
 
 type AuthContextValue = {
@@ -52,7 +42,6 @@ type AuthContextValue = {
   register: (input: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   createModel: (input: Omit<ModelRecord, "id" | "status" | "createdAt" | "updatedAt">) => Promise<ModelRecord | null>;
-  createDataset: (input: Omit<DatasetRecord, "id" | "status" | "updatedAt"> & { status?: DatasetRecord["status"] }) => DatasetRecord | null;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -114,14 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser({
               ...serverUser,
               models: models || [],
-              datasets: [], // TODO: implement datasets
             });
           })
           .catch(() => {
             setUser({
               ...serverUser,
               models: [],
-              datasets: [],
             });
           })
           .finally(() => {
@@ -149,7 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         ...data.user,
         models: models || [],
-        datasets: [], // TODO: implement datasets
       });
     },
     []
@@ -167,7 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         ...data.user,
         models: [],
-        datasets: [],
       });
     },
     []
@@ -217,35 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user]
   );
 
-  const createDataset: AuthContextValue["createDataset"] = useCallback(
-    (input) => {
-      if (!user) {
-        return null;
-      }
-
-      // TODO: Implement dataset API
-      const timestamp = new Date().toISOString();
-      const dataset: DatasetRecord = {
-        id: `dataset_${Math.random().toString(36).slice(2, 10)}`,
-        status: input.status ?? "Scoping",
-        updatedAt: timestamp,
-        ...input,
-      };
-
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              datasets: [dataset, ...prev.datasets],
-            }
-          : prev
-      );
-
-      return dataset;
-    },
-    [user]
-  );
-
   const memoisedValue = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -254,9 +210,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       createModel,
-      createDataset,
     }),
-    [createDataset, createModel, isReady, login, logout, register, user]
+    [createModel, isReady, login, logout, register, user]
   );
 
   return <AuthContext.Provider value={memoisedValue}>{children}</AuthContext.Provider>;

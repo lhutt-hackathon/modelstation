@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRightIcon,
-  DatabaseIcon,
   GaugeCircleIcon,
   LayersIcon,
+  NotebookPenIcon,
   RocketIcon,
   ShieldCheckIcon,
   SparklesIcon
@@ -84,8 +84,8 @@ export default async function ModelsPage() {
             </h1>
             <p className="mx-auto max-w-3xl text-base text-muted-foreground">
               Spin up copilots that reason with your institutional knowledge, pass your guardrails, and deliver measurable
-              impact. ModelStation orchestrates every stage—from dataset pairing to evaluation sign-off—so you can iterate
-              with confidence.
+              impact. ModelStation orchestrates every stage—from scoping the right data for each model to evaluation
+              sign-off—so you can iterate with confidence.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
@@ -93,7 +93,7 @@ export default async function ModelsPage() {
               <Link href="#create">Create new model</Link>
             </Button>
             <Button asChild variant="ghost">
-              <Link href="/#pipeline">Review dataset pipeline</Link>
+              <Link href="/workspace#pipeline">Review training runbook</Link>
             </Button>
           </div>
         </section>
@@ -157,7 +157,7 @@ export default async function ModelsPage() {
                       <TableHead>Model</TableHead>
                       <TableHead>Domain</TableHead>
                       <TableHead>Base model</TableHead>
-                      <TableHead>Dataset</TableHead>
+                      <TableHead>Training data brief</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Last fine-tune</TableHead>
                     </TableRow>
@@ -178,7 +178,7 @@ export default async function ModelsPage() {
                           <TableCell className="text-sm text-muted-foreground">{model.baseModel}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
-                              <DatabaseIcon className="h-4 w-4 text-muted-foreground/70" />
+                              <NotebookPenIcon className="h-4 w-4 text-muted-foreground/70" />
                               {model.dataset}
                             </div>
                           </TableCell>
@@ -305,11 +305,12 @@ export default async function ModelsPage() {
 
                 <div className="rounded-lg border border-border/60 bg-background/40 p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">Dataset-package hand-off guide</p>
+                    <p className="text-sm font-medium text-foreground">Training pipeline hand-off guide</p>
                     <LayersIcon className="h-4 w-4 text-primary" />
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Walkthrough of how datasets, eval suites, and LoRA adapters move from staging to production.
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Walkthrough of how model-specific data runs, eval suites, and LoRA adapters move from staging to
+                      production.
                   </p>
                   <Button variant="ghost" className="mt-3 h-auto px-0 text-sm font-medium text-primary">
                     Browse guide
