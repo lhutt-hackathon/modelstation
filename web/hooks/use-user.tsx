@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
@@ -142,6 +142,11 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Query for current user
   const {
@@ -197,7 +202,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const contextValue: UserContextValue = {
     user,
     isLoading,
-    isReady: !isLoading, // Inverted for compatibility with old code
+    isReady: isClient && !isLoading,
     isError,
     error: error as Error | null,
     login: async (input: LoginInput) => {

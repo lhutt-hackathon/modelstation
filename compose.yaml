@@ -27,3 +27,6 @@ services:
         - action: rebuild
           path: web/package-lock.json
     restart: always
+
+volumes:
+  api-db:

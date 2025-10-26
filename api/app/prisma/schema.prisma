@@ -35,8 +35,10 @@ model Session {
 
 model Model {
   id          String   @id @default(cuid())
+  uid         String   @unique @default(cuid())
 
   name        String
+  prompt      String?
   status      String
   baseModel   String
 
@@ -49,6 +51,7 @@ model Model {
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
+  @@index([uid])
   @@map("models")
 }
 

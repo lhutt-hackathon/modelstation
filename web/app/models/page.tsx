@@ -1,99 +1,81 @@
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import {
-  ArrowUpRightIcon,
-  GaugeCircleIcon,
-  LayersIcon,
-  NotebookPenIcon,
-  RocketIcon,
-  ShieldCheckIcon,
-  SparklesIcon
-} from "lucide-react";
+"use client";
 
-import { CreateModelForm } from "@/components/models/create-model-form";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getApiBaseUrl } from "@/lib/service-client";
-import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2Icon } from "lucide-react";
 
-// Force dynamic rendering since we need database access
-export const dynamic = 'force-dynamic';
+export default function ModelsPage() {
+  const [prompt, setPrompt] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-const statusStyles: Record<string, string> = {
-  Live: "bg-emerald-500/15 text-emerald-500",
-  Pilot: "bg-sky-500/15 text-sky-500",
-  QA: "bg-amber-500/15 text-amber-500"
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    setError(null);
+    setResult(null);
 
-const highlightIconMap: Record<string, LucideIcon> = {
-  RocketIcon,
-  GaugeCircleIcon,
-  LayersIcon
-};
+    try {
+      // First, create the model in the database
+      const token = window.localStorage.getItem("modelstation:token");
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
-type PortfolioModel = {
-  id: string;
-  name: string;
-  domain: string;
-  baseModel: string;
-  dataset: string;
-  status: string;
-  lastTrained: string;
-  metrics: string[];
-  highlights: string[];
-};
+      const modelResponse = await fetch("/api/models", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          prompt,
+          baseModel: "gpt-3.5-turbo"
+        }),
+      });
 
-type RoadmapItem = {
-  id: string;
-  title: string;
-  eta: string;
-  owner: string;
-  detail: string;
-};
+      if (!modelResponse.ok) {
+        throw new Error("Failed to create model");
+      }
 
-type HighlightStat = {
-  id: string;
-  title: string;
-  value: string;
-  description: string;
-  iconKey: string;
-};
+      const modelData = await modelResponse.json();
+      const modelUid = modelData.model?.uid;
+      if (!modelUid) {
+        throw new Error("API did not return a model UID");
+      }
 
-type PortfolioResponse = {
-  models: PortfolioModel[];
-  roadmapItems: RoadmapItem[];
-  highlightStats: HighlightStat[];
-};
+      // Then, process the prompt through the pipeline
+      const response = await fetch("/api/pipeline/process", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ prompt, modelUid }),
+      });
 
-export default async function ModelsPage() {
-  const apiBaseUrl = getApiBaseUrl();
-  const portfolioResponse = await fetch(`${apiBaseUrl}/public/portfolio`, {
-    next: { revalidate: 120 },
-    cache: "force-cache",
-  });
+      if (!response.ok) {
+        throw new Error("Failed to process prompt");
+      }
 
-  if (!portfolioResponse.ok) {
-    throw new Error("Failed to load portfolio data");
-  }
+      const data = await response.json();
+      const huggingfaceUrl =
+        data?.huggingface_url || data?.huggingfaceUrl || null;
 
-  const { models, roadmapItems, highlightStats: highlightRecords } =
-    (await portfolioResponse.json()) as PortfolioResponse;
+      const datasetLine = huggingfaceUrl
+        ? `Dataset published: ${huggingfaceUrl}`
+        : "No dataset was published for this prompt.";
 
-  const highlightStats = highlightRecords.map((stat) => ({
-    ...stat,
-    icon: highlightIconMap[stat.iconKey] ?? SparklesIcon
-  }));
+      setResult(
+        `Model created successfully with UID: ${modelUid}\n\n${data.message || "Processing completed successfully"}\n\n${datasetLine}`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="relative overflow-hidden bg-background">
@@ -104,260 +86,66 @@ export default async function ModelsPage() {
         <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/85 to-transparent" />
       </div>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-16 lg:px-8">
+      <div className="mx-auto flex max-w-4xl flex-col gap-16 px-6 pb-24 pt-16 lg:px-8">
         <section className="space-y-10 text-center">
           <Badge
             variant="outline"
             className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-primary"
           >
-            Fine-tuned models ready for deployment
+            Model Training Pipeline
           </Badge>
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Launch models that inherit your playbooks
+              Create Fine-Tuned Model
             </h1>
             <p className="mx-auto max-w-3xl text-base text-muted-foreground">
-              Spin up copilots that reason with your institutional knowledge, pass your guardrails, and deliver measurable
-              impact. ModelStation orchestrates every stage—from scoping the right data for each model to evaluation
-              sign-off—so you can iterate with confidence.
+              Describe your model requirements and we&apos;ll find the best training data using semantic search.
+              Results are retrieved from Weaviate and published to Hugging Face for training.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button asChild className="px-6">
-              <Link href="#create">Create new model</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/workspace#pipeline">Review training runbook</Link>
-            </Button>
-          </div>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-3">
-          {highlightStats.length > 0 ? (
-            highlightStats.map((stat) => {
-              const Icon = stat.icon;
-
-              return (
-                <Card
-                  key={stat.id}
-                  className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10 backdrop-blur"
-                >
-                  <CardHeader className="space-y-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <CardTitle className="text-2xl font-semibold">{stat.value}</CardTitle>
-                      <CardDescription className="text-sm text-muted-foreground">{stat.title}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{stat.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <Card className="md:col-span-3 border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-md shadow-secondary/10 backdrop-blur">
-              <CardHeader className="space-y-2">
-                <CardTitle className="text-xl font-semibold">No highlights yet</CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
-                  Seed the database to showcase production metrics across your model portfolio.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Run <code>npm run db:seed</code> after pushing the schema to populate the default highlight cards.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </section>
-
-        <Tabs defaultValue="portfolio" className="space-y-10">
-          <TabsList className="mx-auto flex w-full max-w-lg justify-center bg-card/70 backdrop-blur">
-            <TabsTrigger value="portfolio">Model portfolio</TabsTrigger>
-            <TabsTrigger value="new">Create model</TabsTrigger>
-            <TabsTrigger value="roadmap">Experiments roadmap</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="portfolio" className="space-y-8">
-            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
-              <CardHeader>
-                <CardTitle>Live models</CardTitle>
-                <CardDescription>Curated checkpoints that have cleared governance and are currently serving users.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Model</TableHead>
-                      <TableHead>Domain</TableHead>
-                      <TableHead>Base model</TableHead>
-                      <TableHead>Training data brief</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last fine-tune</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {models.length > 0 ? (
-                      models.map((model) => (
-                        <TableRow key={model.id}>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-foreground">{model.name}</span>
-                              {model.metrics.length > 0 ? (
-                                <span className="text-xs text-muted-foreground">{model.metrics.join(" • ")}</span>
-                              ) : null}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{model.domain}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{model.baseModel}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <NotebookPenIcon className="h-4 w-4 text-muted-foreground/70" />
-                              {model.dataset}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={cn(
-                                "border-none px-2 py-1 text-xs font-medium",
-                                statusStyles[model.status] ?? "bg-muted text-muted-foreground"
-                              )}
-                            >
-                              {model.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{model.lastTrained}</TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
-                          No models found. Push the schema and seed data to explore the sample portfolio.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                  <TableCaption>
-                    Explore run histories and evaluation artifacts inside each model card. Guardrail deltas are archived
-                    for audit review.
-                  </TableCaption>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-lg shadow-secondary/10">
-              <CardHeader>
-                <CardTitle>Highlights</CardTitle>
-                <CardDescription>Key behaviors these copilots have unlocked inside enterprise workflows.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-3">
-                {models.length > 0 ? (
-                  models.map((model) => (
-                    <div key={model.id} className="rounded-lg border border-border/60 bg-background/40 p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {model.name.split(" ").slice(0, 2).join(" ")}
-                          </p>
-                          <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground/80">{model.status}</p>
-                        </div>
-                        <SparklesIcon className="h-4 w-4 text-primary" />
-                      </div>
-                      <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                        {model.highlights.length > 0 ? (
-                          model.highlights.map((highlight) => (
-                            <li key={highlight} className="leading-relaxed">
-                              {highlight}
-                            </li>
-                          ))
-                        ) : (
-                          <li className="leading-relaxed text-muted-foreground/70">No highlight summary yet.</li>
-                        )}
-                      </ul>
-                    </div>
-                  ))
+        <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
+          <CardHeader>
+            <CardTitle>Model Requirements</CardTitle>
+            <CardDescription>
+              Describe your model use case and training requirements. We&apos;ll find the best training data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Textarea
+                placeholder="e.g., A customer support chatbot for technical troubleshooting with empathetic responses..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="min-h-[150px] resize-none"
+                disabled={isProcessing}
+              />
+              <Button type="submit" disabled={isProcessing || !prompt.trim()} className="w-full">
+                {isProcessing ? (
+                  <>
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
                 ) : (
-                  <div className="md:col-span-3 rounded-lg border border-border/60 bg-background/40 p-6 text-sm text-muted-foreground">
-                    Create or seed models to surface their signature workflows in this section.
-                  </div>
+                  "Find Training Data"
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </Button>
+            </form>
 
-          <TabsContent value="new" id="create">
-            <CreateModelForm />
-          </TabsContent>
+            {error && (
+              <div className="mt-4 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
 
-          <TabsContent value="roadmap" className="space-y-8">
-            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10">
-              <CardHeader>
-                <CardTitle>Upcoming experiments</CardTitle>
-                <CardDescription>Coordinated fine-tunes and feature upgrades currently in the queue.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {roadmapItems.length > 0 ? (
-                  roadmapItems.map((item) => (
-                    <div key={item.id} className="rounded-lg border border-border/60 bg-background/40 p-4">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <Badge variant="outline" className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                          {item.eta}
-                        </Badge>
-                        <span className="text-sm font-semibold text-foreground">{item.title}</span>
-                        <span className="text-xs text-muted-foreground">Owner: {item.owner}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-lg border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground">
-                    No roadmap entries yet. Seed or create upcoming experiments to track launch timelines.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-accent/10 shadow-md shadow-accent/10">
-              <CardHeader>
-                <CardTitle>Enablement resources</CardTitle>
-                <CardDescription>Everything stakeholders need to green-light the next wave of pilots.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-border/60 bg-background/40 p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">Model evaluation rubric</p>
-                    <ShieldCheckIcon className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Step-by-step criteria for human sign-off, aligned with governance and policy requirements.
-                  </p>
-                  <Button variant="ghost" className="mt-3 h-auto px-0 text-sm font-medium text-primary">
-                    View rubric
-                    <ArrowUpRightIcon className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="rounded-lg border border-border/60 bg-background/40 p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">Training pipeline hand-off guide</p>
-                    <LayersIcon className="h-4 w-4 text-primary" />
-                  </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Walkthrough of how model-specific data runs, eval suites, and LoRA adapters move from staging to
-                      production.
-                  </p>
-                  <Button variant="ghost" className="mt-3 h-auto px-0 text-sm font-medium text-primary">
-                    Browse guide
-                    <ArrowUpRightIcon className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            {result && (
+              <div className="mt-4 rounded-lg border border-primary/50 bg-primary/10 p-4">
+                <p className="text-sm text-foreground">{result}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import "../global.css";
+import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
