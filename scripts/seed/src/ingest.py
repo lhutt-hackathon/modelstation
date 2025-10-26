@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, List, Tuple, TYPE_CHECKING
 from uuid import uuid4
 
-from tqdm import tqdm
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.init import Auth
+
+from .utils import ProgressPrinter
 
 if TYPE_CHECKING:
     from weaviate.collections.collection import Collection
@@ -15,14 +16,11 @@ if TYPE_CHECKING:
 
 def connect_weaviate(
     url: str,
-    api_key: Optional[str],
-    headers: Optional[Dict[str, str]],
+    api_key: str,
 ) -> WeaviateClient:
-    auth_credentials = Auth.api_key(api_key) if api_key else None
     client = weaviate.connect_to_weaviate_cloud(
         cluster_url=url,
-        auth_credentials=auth_credentials,
-        headers=headers,
+        auth_credentials=Auth.api_key(api_key),
     )
 
     return client
@@ -67,15 +65,11 @@ def ensure_collection(
 
 
 def upsert_samples(
-    collection: "Collection",
+    collection: Collection,
     samples_with_vectors: Iterable[Tuple[Dict[str, str], List[float]]],
     batch_size: int,
 ) -> int:
-    progress = tqdm(
-        desc="Uploading to Weaviate",
-        unit="obj",
-        disable=True,
-    )
+    progress = ProgressPrinter("Uploading to Weaviate")
     total = 0
     if hasattr(collection, "batch"):
         batch_interface = collection.batch
@@ -89,7 +83,7 @@ def upsert_samples(
                             vector=vector,
                         )
                         total += 1
-                        progress.update(1)
+                        progress.update()
             finally:
                 progress.close()
             return total
@@ -103,7 +97,7 @@ def upsert_samples(
                 vector=vector,
             )
             total += 1
-            progress.update(1)
+            progress.update()
     finally:
         progress.close()
     return total

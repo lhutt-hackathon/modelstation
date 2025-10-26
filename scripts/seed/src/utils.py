@@ -1,12 +1,30 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Dict, Iterator, TYPE_CHECKING
 
 from datasets import Dataset, load_dataset
 
 if TYPE_CHECKING:
     from .config import DatasetConfig
+
+
+class ProgressPrinter:
+    def __init__(self, label: str) -> None:
+        self._label = label
+        self._count = 0
+        self._start = time.perf_counter()
+
+    def update(self, amount: int = 1) -> None:
+        self._count += amount
+        elapsed = time.perf_counter() - self._start
+        rate = self._count / elapsed if elapsed > 0 else 0.0
+        if self._count % 10 == 0:
+            print(f"{self._label}: iter {self._count}, rate {rate:.2f}/s")
+
+    def close(self) -> None:
+        return None
 
 
 def sanitize_property_name(raw_name: str) -> str:
