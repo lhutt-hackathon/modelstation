@@ -1,26 +1,14 @@
 services:
   api:
     build:
-      context: services/api
+      context: api
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=${DATABASE_URL}
     develop:
       watch:
         - action: rebuild
-          path: services/api
-    restart: always
-
-  manager:
-    build:
-      context: services/manager
-      dockerfile: Dockerfile
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-    develop:
-      watch:
-        - action: rebuild
-          path: services/manager
+          path: api
     restart: always
 
   web:

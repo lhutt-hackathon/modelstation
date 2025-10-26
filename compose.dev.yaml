@@ -12,14 +12,6 @@ services:
       - postgres
       - traefik
 
-  manager:
-    extends:
-      file: compose.yaml
-      service: manager
-    depends_on:
-      - postgres
-      - traefik
-
   web:
     extends:
       file: compose.yaml
