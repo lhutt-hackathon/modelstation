@@ -12,7 +12,7 @@ ENV UV_NO_CACHE=1
 FROM build AS build-venv
 
 COPY pyproject.toml uv.lock /
-RUN uv sync --no-dev
+RUN uv sync --python 3.13 --no-dev
 
 FROM build-venv
 
