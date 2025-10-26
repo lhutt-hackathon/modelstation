@@ -7,6 +7,7 @@
 web/node_modules/
 web/.next/
 web/prisma/*.db
+services/api/prisma_client/
 .DS_Store
 Thumbs.db
 

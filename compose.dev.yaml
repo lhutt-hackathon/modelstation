@@ -11,7 +11,6 @@ services:
     depends_on:
       - postgres
       - traefik
-
   manager:
     extends:
       file: compose.yaml
@@ -69,4 +68,4 @@ services:
 
 volumes:
   postgres-data:
-  web-db:
+  api-db:

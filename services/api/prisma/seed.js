@@ -51,7 +51,7 @@ async function main() {
 
   // Clean existing data (in correct order to respect foreign keys)
   await prisma.session.deleteMany();
-  await prisma.model.deleteMany();
+  await prisma.trainingModel.deleteMany();
   await prisma.highlightStat.deleteMany();
   await prisma.roadmapItem.deleteMany();
   await prisma.user.deleteMany();
@@ -109,7 +109,7 @@ async function main() {
   ];
 
   for (const data of modelData) {
-    await prisma.model.create({ data });
+    await prisma.trainingModel.create({ data });
   }
 
   console.log(`Created ${modelData.length} models for demo user`);

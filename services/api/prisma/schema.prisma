@@ -2,20 +2,25 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator pyclient {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String          @id @default(cuid())
+  email     String          @unique
   password  String
   name      String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  models    Model[]
+  role      String          @default("user")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  model     TrainingModel[]
   sessions  Session[]
 }
 
@@ -31,7 +36,7 @@ model Session {
   @@index([token])
 }
 
-model Model {
+model TrainingModel {
   id          String   @id @default(cuid())
   name        String
   domain      String
@@ -47,14 +52,15 @@ model Model {
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
+  @@map("Model")
 }
 
 model RoadmapItem {
-  id      String   @id @default(cuid())
-  title   String
-  eta     String
-  owner   String
-  detail  String
+  id        String   @id @default(cuid())
+  title     String
+  eta       String
+  owner     String
+  detail    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

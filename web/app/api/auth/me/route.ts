@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getApiBaseUrl } from "@/lib/service-client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,40 +7,19 @@ export async function GET(request: NextRequest) {
     const token = authHeader?.replace("Bearer ", "");
 
     if (!token) {
-      return NextResponse.json(
-        { error: "No token provided" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
-    // Find session
-    const session = await prisma.session.findUnique({
-      where: { token },
-      include: { user: true },
+    const apiResponse = await fetch(`${getApiBaseUrl()}/auth/me`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
     });
 
-    if (!session) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
-
-    // Check if session expired
-    if (session.expiresAt < new Date()) {
-      await prisma.session.delete({
-        where: { id: session.id },
-      });
-      return NextResponse.json(
-        { error: "Session expired" },
-        { status: 401 }
-      );
-    }
-
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = session.user;
-
-    return NextResponse.json({ user: userWithoutPassword });
+    const data = await apiResponse.json();
+    return NextResponse.json(data, { status: apiResponse.status });
   } catch (error) {
     console.error("Get user error:", error);
     return NextResponse.json(

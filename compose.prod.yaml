@@ -3,7 +3,6 @@ services:
     extends:
       file: compose.yaml
       service: api
-
   manager:
     extends:
       file: compose.yaml

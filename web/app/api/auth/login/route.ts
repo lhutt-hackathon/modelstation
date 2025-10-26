@@ -1,60 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import { getApiBaseUrl } from "@/lib/service-client";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
-
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    // Create session
-    const token = crypto.randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token,
-        expiresAt,
+    const payload = await request.json();
+    const apiResponse = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(payload),
+      cache: "no-store",
     });
 
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
-
-    return NextResponse.json({
-      user: userWithoutPassword,
-      token,
-    });
+    const data = await apiResponse.json();
+    return NextResponse.json(data, { status: apiResponse.status });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

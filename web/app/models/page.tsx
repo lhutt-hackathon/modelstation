@@ -24,7 +24,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { prisma } from "@/lib/prisma";
+import { getApiBaseUrl } from "@/lib/service-client";
 import { cn } from "@/lib/utils";
 
 // Force dynamic rendering since we need database access
@@ -42,19 +42,53 @@ const highlightIconMap: Record<string, LucideIcon> = {
   LayersIcon
 };
 
-export default async function ModelsPage() {
-  const [rawModels, roadmapItems, highlightRecords] = await Promise.all([
-    prisma.model.findMany({ orderBy: { name: "asc" } }),
-    prisma.roadmapItem.findMany({ orderBy: { eta: "asc" } }),
-    prisma.highlightStat.findMany({ orderBy: { title: "asc" } })
-  ]);
+type PortfolioModel = {
+  id: string;
+  name: string;
+  domain: string;
+  baseModel: string;
+  dataset: string;
+  status: string;
+  lastTrained: string;
+  metrics: string[];
+  highlights: string[];
+};
 
-  // Parse JSON strings back to arrays
-  const models = rawModels.map((model) => ({
-    ...model,
-    metrics: JSON.parse(model.metrics) as string[],
-    highlights: JSON.parse(model.highlights) as string[],
-  }));
+type RoadmapItem = {
+  id: string;
+  title: string;
+  eta: string;
+  owner: string;
+  detail: string;
+};
+
+type HighlightStat = {
+  id: string;
+  title: string;
+  value: string;
+  description: string;
+  iconKey: string;
+};
+
+type PortfolioResponse = {
+  models: PortfolioModel[];
+  roadmapItems: RoadmapItem[];
+  highlightStats: HighlightStat[];
+};
+
+export default async function ModelsPage() {
+  const apiBaseUrl = getApiBaseUrl();
+  const portfolioResponse = await fetch(`${apiBaseUrl}/public/portfolio`, {
+    next: { revalidate: 120 },
+    cache: "force-cache",
+  });
+
+  if (!portfolioResponse.ok) {
+    throw new Error("Failed to load portfolio data");
+  }
+
+  const { models, roadmapItems, highlightStats: highlightRecords } =
+    (await portfolioResponse.json()) as PortfolioResponse;
 
   const highlightStats = highlightRecords.map((stat) => ({
     ...stat,
