@@ -60,11 +60,11 @@ def _make_request(
             timeout=30.0,
         )
         response.raise_for_status()
-        
+
         # Some endpoints return empty responses
         if not response.text or response.text.strip() == "":
             return None
-            
+
         return response.json()
 
     except requests.HTTPError as e:

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Play, Square, RefreshCw, Trash2, Plus, Server, Activity } from "lucide-react";
+import { Play, Square, RefreshCw, Trash2, Plus, Server, Activity, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,16 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreatePodDialog } from "@/components/dashboard/create-pod-dialog";
+import { CreateModelDialog } from "@/components/dashboard/create-model-dialog";
+
+interface Model {
+  id: string;
+  name: string;
+  status: string;
+  base_model: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface Pod {
   id: string;
@@ -63,19 +74,34 @@ interface ApiResponse<T> {
 }
 
 export default function DashboardPage() {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createPodDialogOpen, setCreatePodDialogOpen] = useState(false);
+  const [createModelDialogOpen, setCreateModelDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [podToDelete, setPodToDelete] = useState<string | null>(null);
+  const [modelToDelete, setModelToDelete] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("models");
   const queryClient = useQueryClient();
+
+  // Fetch models
+  const { data: modelsData, isLoading: modelsLoading } = useQuery<ApiResponse<{ models: Model[]; count: number }>>({
+    queryKey: ["models"],
+    queryFn: async () => {
+      const response = await fetch("/api/models", {
+        credentials: "include", // Include cookies
+      });
+      if (!response.ok) throw new Error("Failed to fetch models");
+      return response.json();
+    },
+  });
+
+  const models = modelsData?.data?.models || [];
 
   // Fetch pods
   const { data: podsData, isLoading } = useQuery<ApiResponse<{ pods: Pod[]; count: number }>>({
     queryKey: ["pods"],
     queryFn: async () => {
       const response = await fetch("/api/cloud/pods", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch pods");
       return response.json();
@@ -90,9 +116,7 @@ export default function DashboardPage() {
     mutationFn: async (podId: string) => {
       const response = await fetch(`/api/cloud/pods/${podId}/stop`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to stop pod");
       return response.json();
@@ -111,9 +135,7 @@ export default function DashboardPage() {
     mutationFn: async (podId: string) => {
       const response = await fetch(`/api/cloud/pods/${podId}/resume`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to resume pod");
       return response.json();
@@ -132,9 +154,7 @@ export default function DashboardPage() {
     mutationFn: async (podId: string) => {
       const response = await fetch(`/api/cloud/pods/${podId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to terminate pod");
       return response.json();
@@ -152,14 +172,44 @@ export default function DashboardPage() {
 
   const handleDeleteClick = (podId: string) => {
     setPodToDelete(podId);
+    setActiveTab("pods");
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteModelClick = (modelId: string) => {
+    setModelToDelete(modelId);
+    setActiveTab("models");
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
-    if (podToDelete) {
+    if (activeTab === "pods" && podToDelete) {
       terminatePodMutation.mutate(podToDelete);
+    } else if (activeTab === "models" && modelToDelete) {
+      deleteModelMutation.mutate(modelToDelete);
     }
   };
+
+  // Delete model mutation
+  const deleteModelMutation = useMutation({
+    mutationFn: async (modelId: string) => {
+      const response = await fetch(`/api/models/${modelId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete model");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["models"] });
+      toast.success("Model deleted successfully");
+      setDeleteDialogOpen(false);
+      setModelToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete model: ${error.message}`);
+    },
+  });
 
   const getStatusBadge = (status?: string) => {
     switch (status?.toLowerCase()) {
@@ -189,19 +239,118 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pod Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your RunPod H100 GPU instances
-          </p>
-        </div>
-        <Button onClick={() => setCreateDialogOpen(true)} size="lg">
-          <Plus className="mr-2 h-4 w-4" />
-          Create H100 Pod
-        </Button>
+    <div className="container mx-auto py-8 px-4 isolate">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your AI models and GPU instances
+        </p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="models" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Models
+          </TabsTrigger>
+          <TabsTrigger value="pods" className="flex items-center gap-2">
+            <Server className="h-4 w-4" />
+            Pods
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Models Tab */}
+        <TabsContent value="models" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">AI Models</h2>
+              <p className="text-sm text-muted-foreground">
+                Create and manage your custom AI models
+              </p>
+            </div>
+            <Button onClick={() => setCreateModelDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Model
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Models</CardTitle>
+              <CardDescription>
+                Models you've created from prompts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {modelsLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : models.length === 0 ? (
+                <div className="text-center py-12">
+                  <Sparkles className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No models yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Create your first AI model from a text prompt
+                  </p>
+                  <Button onClick={() => setCreateModelDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Model
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {models.map((model) => (
+                      <TableRow key={model.id}>
+                        <TableCell className="font-medium">{model.name}</TableCell>
+                        <TableCell>{getStatusBadge(model.status)}</TableCell>
+                        <TableCell>
+                          {new Date(model.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteModelClick(model.id)}
+                            disabled={deleteModelMutation.isPending}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Pods Tab */}
+        <TabsContent value="pods" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">GPU Pods</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage your RunPod H100 GPU instances
+              </p>
+            </div>
+            <Button onClick={() => setCreatePodDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Pod
+            </Button>
+          </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3 mb-8">
@@ -260,7 +409,7 @@ export default function DashboardPage() {
               <p className="text-muted-foreground mb-4">
                 Create your first H100 GPU pod to get started
               </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button onClick={() => setCreatePodDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create H100 Pod
               </Button>
@@ -335,10 +484,17 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       <CreatePodDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        open={createPodDialogOpen}
+        onOpenChange={setCreatePodDialogOpen}
+      />
+
+      <CreateModelDialog
+        open={createModelDialogOpen}
+        onOpenChange={setCreateModelDialogOpen}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -346,20 +502,20 @@ export default function DashboardPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the pod
+              This action cannot be undone. This will permanently delete the {activeTab === "pods" ? "pod" : "model"}
               and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={terminatePodMutation.isPending}>
+            <AlertDialogCancel disabled={terminatePodMutation.isPending || deleteModelMutation.isPending}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              disabled={terminatePodMutation.isPending}
+              disabled={terminatePodMutation.isPending || deleteModelMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {terminatePodMutation.isPending ? "Deleting..." : "Delete Pod"}
+              {(terminatePodMutation.isPending || deleteModelMutation.isPending) ? "Deleting..." : `Delete ${activeTab === "pods" ? "Pod" : "Model"}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

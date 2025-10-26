@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
 from app.lib.auth import get_session
@@ -50,7 +50,7 @@ def _sanitize_user(user: dict) -> UserResponse:
 
 
 @router.post("/login", response_model=AuthResponse, status_code=status.HTTP_200_OK)
-async def login(payload: LoginRequest, request: Request) -> AuthResponse:
+async def login(payload: LoginRequest, request: Request, response: Response) -> AuthResponse:
     db = request.app.state.prisma
     user = await db.user.find_unique(where={"email": payload.email})
 
@@ -71,11 +71,21 @@ async def login(payload: LoginRequest, request: Request) -> AuthResponse:
         },
     )
 
+    # Set cookie
+    response.set_cookie(
+        key="modelstation:token",
+        value=token,
+        max_age=7 * 24 * 60 * 60,  # 7 days in seconds
+        httponly=True,
+        samesite="lax",
+        secure=False,  # Set to True in production with HTTPS
+    )
+
     return AuthResponse(user=_sanitize_user(user.dict()), token=token)
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest, request: Request) -> AuthResponse:
+async def register(payload: RegisterRequest, request: Request, response: Response) -> AuthResponse:
     db = request.app.state.prisma
     existing = await db.user.find_unique(where={"email": payload.email})
     if existing is not None:
@@ -105,6 +115,16 @@ async def register(payload: RegisterRequest, request: Request) -> AuthResponse:
         },
     )
 
+    # Set cookie
+    response.set_cookie(
+        key="modelstation:token",
+        value=token,
+        max_age=7 * 24 * 60 * 60,  # 7 days in seconds
+        httponly=True,
+        samesite="lax",
+        secure=False,  # Set to True in production with HTTPS
+    )
+
     return AuthResponse(user=_sanitize_user(user.dict()), token=token)
 
 
@@ -117,7 +137,11 @@ async def me(session=Depends(get_session)) -> UserOnlyResponse:
 
 
 @router.post("/logout", response_model=MessageResponse)
-async def logout(request: Request, session=Depends(get_session)) -> MessageResponse:
+async def logout(request: Request, response: Response, session=Depends(get_session)) -> MessageResponse:
     db = request.app.state.prisma
     await db.session.delete_many(where={"token": session.token})
+
+    # Clear cookie
+    response.delete_cookie(key="modelstation:token")
+
     return MessageResponse(message="Logged out successfully")

@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased">
+      <body className="relative flex min-h-screen flex-col bg-background font-sans text-foreground antialiased">
         <Providers>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main className="relative flex-1">{children}</main>
           <Toaster />
         </Providers>
       </body>

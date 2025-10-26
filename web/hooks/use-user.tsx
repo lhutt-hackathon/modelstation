@@ -52,35 +52,18 @@ type RegisterInput = {
   password: string;
 };
 
-const TOKEN_STORAGE_KEY = "modelstation:token";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_STORAGE_KEY);
-}
-
-function setToken(token: string | null) {
-  if (typeof window === "undefined") return;
-  if (token) {
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  } else {
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-  }
-}
-
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
   const response = await fetch(url, {
     ...options,
-    headers,
+    headers: {
+      ...headers,
+      ...options.headers,
+    },
+    credentials: "include", // Include cookies in requests
   });
 
   if (!response.ok) {
@@ -153,7 +136,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   } = useQuery({
     queryKey: userKeys.current(),
     queryFn: fetchCurrentUser,
-    enabled: !!getToken(),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -162,7 +144,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      setToken(data.token);
       queryClient.setQueryData(userKeys.current(), data.user);
     },
   });
@@ -171,7 +152,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      setToken(data.token);
       queryClient.setQueryData(userKeys.current(), data.user);
     },
   });
@@ -180,14 +160,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
-      setToken(null);
       queryClient.setQueryData(userKeys.current(), null);
       queryClient.clear();
       router.push("/login");
     },
     onError: () => {
       // Always clear on logout, even if API call fails
-      setToken(null);
       queryClient.setQueryData(userKeys.current(), null);
       queryClient.clear();
       router.push("/login");

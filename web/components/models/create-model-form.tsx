@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
 const baseModelOptions = [
@@ -65,7 +65,7 @@ const defaultState: FormState = {
 export function CreateModelForm() {
   const [formState, setFormState] = useState<FormState>(defaultState);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, createModel } = useAuth();
+  const { user } = useUser();
 
   const selectedEvaluations = useMemo(() => new Set(formState.evaluationSuites), [formState.evaluationSuites]);
 
@@ -84,7 +84,7 @@ export function CreateModelForm() {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!user) {
@@ -98,25 +98,42 @@ export function CreateModelForm() {
 
     const baseModelLabel =
       baseModelOptions.find((option) => option.value === formState.baseModel)?.label ?? formState.baseModel;
-    createModel({
-      name: formState.name.trim(),
-      baseModel: baseModelLabel,
-      dataset: formState.datasetBrief.trim(),
-      objective: formState.objective.trim(),
-      successCriteria: formState.success.trim(),
-      guardrailsEnabled: formState.enableGuardrails,
-      dryRun: formState.dryRun,
-      notes: formState.notes.trim(),
-      evaluationSuites: formState.evaluationSuites
-    });
+    
+    try {
+      const response = await fetch("/api/models", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formState.name.trim(),
+          prompt: `Base Model: ${baseModelLabel}
+Dataset: ${formState.datasetBrief.trim()}
+Objective: ${formState.objective.trim()}
+Success Criteria: ${formState.success.trim()}
+Guardrails: ${formState.enableGuardrails ? "Enabled" : "Disabled"}
+Dry Run: ${formState.dryRun ? "Yes" : "No"}
+Evaluation Suites: ${formState.evaluationSuites.join(", ")}
+Notes: ${formState.notes.trim()}`,
+          base_model: "flux-dev",
+        }),
+      });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+      if (!response.ok) {
+        throw new Error("Failed to create model");
+      }
+
       toast.success("Fine-tune request queued", {
         description: `${formState.name || "Untitled model"} will appear in your workspace shortly.`
       });
       setFormState(defaultState);
-    }, 400);
+    } catch (error) {
+      toast.error("Failed to create model", {
+        description: error instanceof Error ? error.message : "Unknown error"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
