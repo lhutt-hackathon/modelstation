@@ -89,12 +89,12 @@ function LoginView() {
   return (
     <div className="relative flex min-h-[calc(100vh-80px)] items-center justify-center bg-background px-6 py-16">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-70">
-        <div className="absolute -top-32 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(116,108,255,0.25)_0%,_rgba(58,182,255,0.12)_45%,_transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-20 right-12 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(52,211,153,0.25)_0%,_transparent_70%)] blur-3xl" />
+        <div className="absolute -top-32 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(121,93,255,0.5)_0%,_rgba(87,203,255,0.2)_45%,_transparent_72%)] blur-3xl" />
+        <div className="absolute bottom-20 right-12 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(69,219,202,0.32)_0%,_rgba(245,107,167,0.24)_60%,_transparent_78%)] blur-3xl" />
       </div>
 
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 lg:flex-row">
-        <Card className="flex-1 border border-border/70 bg-card/95 shadow-lg backdrop-blur">
+        <Card className="flex-1 border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-xl shadow-primary/15 backdrop-blur">
           <CardHeader className="space-y-3">
             <Button asChild variant="ghost" size="sm" className="w-fit px-3 text-muted-foreground">
               <Link href="/">
@@ -182,7 +182,7 @@ function LoginView() {
           </CardContent>
         </Card>
 
-        <Card className="flex-1 border border-border/70 bg-background/60 p-6 shadow-inner">
+        <Card className="flex-1 border border-border/60 bg-gradient-to-br from-background/70 via-card/80 to-accent/10 p-6 shadow-lg shadow-accent/15 backdrop-blur">
           <CardHeader className="space-y-3">
             <CardTitle className="text-2xl font-semibold">Why sign in?</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">

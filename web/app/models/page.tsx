@@ -64,9 +64,9 @@ export default async function ModelsPage() {
   return (
     <div className="relative overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-80">
-        <div className="absolute -top-48 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(80,185,255,0.25)_0%,_rgba(112,46,255,0.1)_45%,_transparent_70%)] blur-3xl" />
-        <div className="absolute left-16 top-80 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(52,211,153,0.25)_0%,_transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-12 right-12 h-[440px] w-[440px] rounded-full bg-[radial-gradient(circle,_rgba(255,153,102,0.22)_0%,_transparent_60%)] blur-3xl" />
+        <div className="absolute -top-48 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(122,94,255,0.55)_0%,_rgba(87,203,255,0.2)_40%,_transparent_70%)] blur-3xl" />
+        <div className="absolute left-16 top-80 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(69,219,202,0.32)_0%,_rgba(255,188,122,0.2)_55%,_transparent_75%)] blur-3xl" />
+        <div className="absolute bottom-12 right-12 h-[440px] w-[440px] rounded-full bg-[radial-gradient(circle,_rgba(245,107,167,0.26)_0%,_transparent_60%)] blur-3xl" />
         <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/85 to-transparent" />
       </div>
 
@@ -74,7 +74,7 @@ export default async function ModelsPage() {
         <section className="space-y-10 text-center">
           <Badge
             variant="outline"
-            className="mx-auto flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/70 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground"
+            className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-primary"
           >
             Fine-tuned models ready for deployment
           </Badge>
@@ -104,7 +104,10 @@ export default async function ModelsPage() {
               const Icon = stat.icon;
 
               return (
-                <Card key={stat.id} className="border border-border/70 bg-card/90 shadow-sm backdrop-blur">
+                <Card
+                  key={stat.id}
+                  className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10 backdrop-blur"
+                >
                   <CardHeader className="space-y-4">
                     <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
                       <Icon className="h-5 w-5" />
@@ -121,7 +124,7 @@ export default async function ModelsPage() {
               );
             })
           ) : (
-            <Card className="md:col-span-3 border border-border/70 bg-card/90 shadow-sm backdrop-blur">
+            <Card className="md:col-span-3 border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-md shadow-secondary/10 backdrop-blur">
               <CardHeader className="space-y-2">
                 <CardTitle className="text-xl font-semibold">No highlights yet</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -138,14 +141,14 @@ export default async function ModelsPage() {
         </section>
 
         <Tabs defaultValue="portfolio" className="space-y-10">
-          <TabsList className="mx-auto flex w-full max-w-lg justify-center bg-card/80">
+          <TabsList className="mx-auto flex w-full max-w-lg justify-center bg-card/70 backdrop-blur">
             <TabsTrigger value="portfolio">Model portfolio</TabsTrigger>
             <TabsTrigger value="new">Create model</TabsTrigger>
             <TabsTrigger value="roadmap">Experiments roadmap</TabsTrigger>
           </TabsList>
 
           <TabsContent value="portfolio" className="space-y-8">
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
               <CardHeader>
                 <CardTitle>Live models</CardTitle>
                 <CardDescription>Curated checkpoints that have cleared governance and are currently serving users.</CardDescription>
@@ -211,7 +214,7 @@ export default async function ModelsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-lg shadow-secondary/10">
               <CardHeader>
                 <CardTitle>Highlights</CardTitle>
                 <CardDescription>Key behaviors these copilots have unlocked inside enterprise workflows.</CardDescription>
@@ -256,7 +259,7 @@ export default async function ModelsPage() {
           </TabsContent>
 
           <TabsContent value="roadmap" className="space-y-8">
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10">
               <CardHeader>
                 <CardTitle>Upcoming experiments</CardTitle>
                 <CardDescription>Coordinated fine-tunes and feature upgrades currently in the queue.</CardDescription>
@@ -283,7 +286,7 @@ export default async function ModelsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-accent/10 shadow-md shadow-accent/10">
               <CardHeader>
                 <CardTitle>Enablement resources</CardTitle>
                 <CardDescription>Everything stakeholders need to green-light the next wave of pilots.</CardDescription>

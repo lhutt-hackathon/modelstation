@@ -59,7 +59,7 @@ export default function WorkspacePage() {
   if (!user) {
     return (
       <div className="relative flex min-h-[calc(100vh-80px)] items-center justify-center bg-background px-6 py-16">
-        <div className="max-w-md rounded-xl border border-border/70 bg-card p-10 text-center shadow-sm">
+        <div className="max-w-md rounded-xl border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 p-10 text-center shadow-lg shadow-primary/10">
           <NotebookPenIcon className="mx-auto mb-4 h-8 w-8 text-primary" />
           <h1 className="text-2xl font-semibold text-foreground">Sign in to access your workspace</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -86,13 +86,13 @@ export default function WorkspacePage() {
   return (
     <div className="relative overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-70">
-        <div className="absolute -top-40 left-1/2 h-[480px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(58,182,255,0.2)_0%,_rgba(116,108,255,0.1)_45%,_transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-16 right-16 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(255,153,102,0.22)_0%,_transparent_60%)] blur-3xl" />
+        <div className="absolute -top-40 left-1/2 h-[480px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(121,93,255,0.5)_0%,_rgba(87,203,255,0.2)_42%,_transparent_72%)] blur-3xl" />
+        <div className="absolute bottom-16 right-16 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(69,219,202,0.32)_0%,_rgba(245,107,167,0.24)_55%,_transparent_75%)] blur-3xl" />
       </div>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 pb-24 pt-16 lg:px-8">
         <section className="space-y-6">
-          <Badge variant="outline" className="w-fit text-xs uppercase tracking-[0.3em] text-muted-foreground">
+          <Badge variant="outline" className="w-fit text-xs uppercase tracking-[0.3em] border-primary/40 bg-primary/10 text-primary">
             Workspace
           </Badge>
           <div className="space-y-4">
@@ -118,13 +118,13 @@ export default function WorkspacePage() {
         </section>
 
         <Tabs defaultValue="models" className="space-y-8">
-          <TabsList className="w-full max-w-lg bg-card/80">
+          <TabsList className="w-full max-w-lg bg-card/70 backdrop-blur">
             <TabsTrigger value="models">My fine-tunes</TabsTrigger>
             <TabsTrigger value="pipeline">Runbook</TabsTrigger>
           </TabsList>
 
           <TabsContent value="models" className="space-y-6">
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
               <CardHeader>
                 <CardTitle>Your fine-tuned models</CardTitle>
                 <CardDescription>
@@ -185,7 +185,7 @@ export default function WorkspacePage() {
                 </Table>
 
                 {sortedModels.length > 0 && (
-                  <div className="rounded-lg border border-border/60 bg-background/40 p-4 text-sm text-muted-foreground">
+                  <div className="rounded-lg border border-border/50 bg-gradient-to-r from-background/70 via-card/80 to-primary/10 p-4 text-sm text-muted-foreground shadow-sm shadow-primary/10">
                     <p className="font-medium text-foreground">Latest objective</p>
                     <p>{sortedModels[0].objective}</p>
                     <p className="mt-2">
@@ -198,7 +198,7 @@ export default function WorkspacePage() {
           </TabsContent>
 
           <TabsContent value="pipeline" className="space-y-6" id="pipeline">
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-accent/10 shadow-lg shadow-accent/10">
               <CardHeader>
                 <CardTitle>Fine-tune runbook</CardTitle>
                 <CardDescription>
@@ -210,10 +210,10 @@ export default function WorkspacePage() {
                 {pipelineStages.map((stage, index) => (
                   <div
                     key={stage.label}
-                    className="rounded-lg border border-border/60 bg-background/40 p-4"
+                    className="rounded-lg border border-border/50 bg-gradient-to-br from-background/70 via-card/80 to-primary/10 p-4 shadow-sm shadow-primary/10"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <Badge variant="outline" className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                      <Badge variant="outline" className="text-xs uppercase tracking-[0.25em] border-primary/40 bg-primary/10 text-primary">
                         Stage {index + 1}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{stage.handoff}</span>
@@ -225,7 +225,7 @@ export default function WorkspacePage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-lg shadow-secondary/10">
               <CardHeader>
                 <CardTitle>What "data per model" means</CardTitle>
                 <CardDescription>
@@ -234,21 +234,21 @@ export default function WorkspacePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-muted-foreground">
-                <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                <div className="rounded-lg border border-border/50 bg-gradient-to-br from-background/70 via-card/80 to-accent/10 p-4 shadow-sm shadow-accent/10">
                   <p className="font-medium text-foreground">Exclusive data lineage</p>
                   <p>
                     Source material, synthetic augmentations, and annotations stay tied to a single model. Provenance is
                     logged so auditors can trace any output back to the exact scenario.
                   </p>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                <div className="rounded-lg border border-border/50 bg-gradient-to-br from-background/70 via-card/80 to-primary/10 p-4 shadow-sm shadow-primary/10">
                   <p className="font-medium text-foreground">Evaluation ready hand-offs</p>
                   <p>
                     Training briefs arrive packaged with policy tests, regression suites, and review templates so the same
                     artifacts fuel training and sign-off.
                   </p>
                 </div>
-                <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                <div className="rounded-lg border border-border/50 bg-gradient-to-br from-background/70 via-card/80 to-secondary/10 p-4 shadow-sm shadow-secondary/10">
                   <p className="font-medium text-foreground">Faster iteration loops</p>
                   <p>
                     Updates to a model regenerate its data slice automatically. You capture deltas in both the data run

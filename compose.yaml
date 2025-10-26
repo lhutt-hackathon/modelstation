@@ -43,6 +43,9 @@ services:
           target: /app
           ignore:
             - node_modules
+            - prisma/dev.db
+            - prisma/*.db
+            - prisma/*.db-*
         - action: rebuild
           path: web/package-lock.json
     restart: always

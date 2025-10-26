@@ -173,9 +173,9 @@ export default function Page() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-80">
-        <div className="absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(116,108,255,0.28)_0%,_rgba(58,182,255,0.1)_45%,_transparent_70%)] blur-3xl" />
-        <div className="absolute left-12 top-52 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,_rgba(52,211,153,0.25)_0%,_transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-8 right-16 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(99,102,241,0.22)_0%,_transparent_60%)] blur-3xl" />
+        <div className="absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(121,93,255,0.55)_0%,_rgba(87,203,255,0.18)_40%,_transparent_72%)] blur-3xl" />
+        <div className="absolute left-12 top-52 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle,_rgba(69,219,202,0.35)_0%,_rgba(255,184,108,0.18)_55%,_transparent_75%)] blur-3xl" />
+        <div className="absolute bottom-8 right-16 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,_rgba(245,107,167,0.28)_0%,_transparent_65%)] blur-3xl" />
         <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/85 to-transparent" />
       </div>
 
@@ -183,7 +183,7 @@ export default function Page() {
         <header className="space-y-10 text-center">
           <Badge
             variant="outline"
-            className="mx-auto flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/70 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground"
+            className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-primary"
           >
             Model operations without guesswork
           </Badge>
@@ -211,7 +211,10 @@ export default function Page() {
         <section className="space-y-10">
           <div className="grid gap-6 md:grid-cols-3">
             {featureHighlights.map((feature) => (
-              <Card key={feature.title} className="border border-border/70 bg-card shadow-sm">
+              <Card
+                key={feature.title}
+                className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10"
+              >
                 <CardHeader className="space-y-4">
                   <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
                     <feature.icon className="h-5 w-5" />
@@ -229,7 +232,7 @@ export default function Page() {
         </section>
 
         <section id="pipeline" className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
-          <Card className="border border-border/70 bg-card shadow-sm">
+          <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-accent/10 shadow-lg shadow-accent/10">
             <CardHeader>
               <CardTitle>Our fine-tune pipeline</CardTitle>
               <CardDescription>
@@ -255,7 +258,7 @@ export default function Page() {
               ))}
             </CardContent>
           </Card>
-          <Card className="border border-border/70 bg-card shadow-sm">
+          <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10">
             <CardHeader>
               <CardTitle>Compliance scaffolding</CardTitle>
               <CardDescription>
@@ -290,14 +293,17 @@ export default function Page() {
 
         <section className="space-y-10">
           <Tabs defaultValue="playbooks" className="w-full">
-            <TabsList className="mb-6 bg-card/80">
+            <TabsList className="mb-6 bg-card/70 backdrop-blur">
               <TabsTrigger value="playbooks">Industry playbooks</TabsTrigger>
               <TabsTrigger value="metrics">Training metrics</TabsTrigger>
             </TabsList>
             <TabsContent value="playbooks">
               <div className="grid gap-6 md:grid-cols-3">
                 {industryPlaybooks.map((playbook) => (
-                  <Card key={playbook.label} className="border border-border/70 bg-card shadow-sm">
+                  <Card
+                    key={playbook.label}
+                    className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-md shadow-secondary/10"
+                  >
                     <CardHeader className="space-y-4">
                       <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
                         <playbook.icon className="h-5 w-5" />
@@ -324,7 +330,7 @@ export default function Page() {
               </div>
             </TabsContent>
             <TabsContent value="metrics">
-              <Card className="border border-border/70 bg-card shadow-sm">
+              <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-md shadow-primary/10">
                 <CardHeader>
                   <CardTitle>Delivery profile</CardTitle>
                   <CardDescription>
@@ -358,7 +364,7 @@ export default function Page() {
 
         <section className="space-y-10">
           <div className="flex flex-col items-center justify-center gap-4 text-center">
-            <Badge variant="outline" className="w-fit text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            <Badge variant="outline" className="w-fit text-xs uppercase tracking-[0.3em] border-primary/40 bg-primary/10 text-primary">
               Model studio
             </Badge>
             <div className="space-y-3">
@@ -376,7 +382,10 @@ export default function Page() {
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {modelStudioHighlights.map((highlight) => (
-              <Card key={highlight.title} className="border border-border/70 bg-card shadow-sm">
+              <Card
+                key={highlight.title}
+                className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-accent/10 shadow-lg shadow-accent/10"
+              >
                 <CardHeader className="space-y-4">
                   <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground/10 text-primary">
                     <highlight.icon className="h-5 w-5" />
@@ -396,7 +405,7 @@ export default function Page() {
         <section className="space-y-8">
           <Separator className="bg-border/40" />
           <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-secondary/10 shadow-lg shadow-secondary/15">
               <CardHeader>
                 <CardTitle>Why we over-deliver on specificity</CardTitle>
                 <CardDescription>
@@ -428,7 +437,7 @@ export default function Page() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/70 bg-card shadow-sm">
+            <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
               <CardHeader>
                 <CardTitle>Frequently asked</CardTitle>
                 <CardDescription>
@@ -455,7 +464,7 @@ export default function Page() {
           </div>
         </section>
 
-        <Card className="border border-border/70 bg-card shadow-sm">
+        <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-lg shadow-primary/10">
           <CardContent className="flex flex-col gap-6 px-8 py-9 md:flex-row md:items-center md:justify-between">
             <div className="space-y-3">
               <Badge variant="outline" className="w-fit text-xs uppercase tracking-[0.3em] text-muted-foreground">
