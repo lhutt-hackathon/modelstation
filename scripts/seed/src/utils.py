@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import time
 from typing import Dict, Iterator, TYPE_CHECKING
 
@@ -38,32 +37,17 @@ def sanitize_property_name(raw_name: str) -> str:
 
 def load_samples(config: "DatasetConfig") -> Iterator[Dict[str, str]]:
     dataset: Dataset = load_dataset(
-        config.dataset_name, split=config.dataset_split  # type: ignore[arg-type]
+        config.dataset_name,
+        config.dataset_config,
+        split=config.dataset_split,  # type: ignore[arg-type]
     )
 
     emitted = False
     produced = 0
     for record in dataset:
-        text_value = record.get(config.text_field)
-        if not text_value:
+        sample = config.translate_record(record)
+        if sample is None:
             continue
-        text = str(text_value).strip()
-        if not text:
-            continue
-
-        sample = {
-            config.text_property: text,
-            **config.static_metadata,
-        }
-
-        metadata_values: Dict[str, str] = {}
-        for dataset_field, property_name in config.metadata_field_map.items():
-            value = record.get(dataset_field)
-            if value is None:
-                continue
-            metadata_values[property_name] = str(value)
-
-        sample[config.values_property] = json.dumps(metadata_values) if metadata_values else "{}"
 
         emitted = True
         produced += 1
@@ -75,5 +59,5 @@ def load_samples(config: "DatasetConfig") -> Iterator[Dict[str, str]]:
     if not emitted:
         raise RuntimeError(
             f"No usable samples found in {config.dataset_name}:{config.dataset_split}. "
-            f"Check that HF_TEXT_FIELD={config.text_field} is correct."
+            "Verify that the configured dataset references are correct."
         )

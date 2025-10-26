@@ -9,6 +9,9 @@ from weaviate.classes.init import Auth
 
 from .utils import ProgressPrinter
 
+# Shared sample representation used across the ingest pipeline.
+SampleRecord = Dict[str, str]
+
 if TYPE_CHECKING:
     from weaviate.collections.collection import Collection
     from weaviate.client import WeaviateClient
@@ -66,7 +69,7 @@ def ensure_collection(
 
 def upsert_samples(
     collection: Collection,
-    samples_with_vectors: Iterable[Tuple[Dict[str, str], List[float]]],
+    samples_with_vectors: Iterable[Tuple[SampleRecord, List[float]]],
     batch_size: int,
 ) -> int:
     progress = ProgressPrinter("Uploading to Weaviate")

@@ -10,6 +10,11 @@ from .utils import ProgressPrinter
 
 _WORKER_CLIENT: Optional[OpenAI] = None
 
+# A dataset sample expressed as a simple string map; all values have already been
+# normalised upstream (input text, task/system prompt, expected output JSON).
+SampleRecord = Dict[str, str]
+BatchResult = List[Tuple[SampleRecord, List[float]]]
+
 def create_openai_client(
     api_key: str,
     base_url: Optional[str] = None,
@@ -21,21 +26,21 @@ def create_openai_client(
 
 
 def embed_samples(
-    samples: Iterable[Dict[str, str]],
+    samples: Iterable[SampleRecord],
     text_property: str,
     *,
     api_key: str,
     base_url: Optional[str],
     model_name: str,
     batch_size: int,
-) -> Iterator[Tuple[Dict[str, str], List[float]]]:
+) -> Iterator[Tuple[SampleRecord, List[float]]]:
     if batch_size <= 0:
         raise ValueError("batch_size must be positive.")
 
     progress = ProgressPrinter("Generating embeddings with OpenAI")
     ctx = get_context("spawn")
 
-    def task_iter() -> Iterator[Tuple[List[Dict[str, str]], str, str]]:
+    def task_iter() -> Iterator[Tuple[List[SampleRecord], str, str]]:
         for batch in _batched(samples, batch_size):
             yield batch, text_property, model_name
 
@@ -53,8 +58,8 @@ def embed_samples(
 
 
 def _embed_batch_worker(
-    args: Tuple[List[Dict[str, str]], str, str],
-) -> List[Tuple[Dict[str, str], List[float]]]:
+    args: Tuple[List[SampleRecord], str, str],
+) -> BatchResult:
     batch, text_property, model_name = args
     client = _get_worker_client()
     inputs = [sample[text_property] for sample in batch]
@@ -63,7 +68,7 @@ def _embed_batch_worker(
         raise RuntimeError(
             "OpenAI embeddings response size did not match the input batch."
         )
-    result: List[Tuple[Dict[str, str], List[float]]] = []
+    result: BatchResult = []
     for sample, item in zip(batch, response.data, strict=False):
         embedding = [float(value) for value in item.embedding]
         result.append((sample, embedding))
@@ -71,8 +76,8 @@ def _embed_batch_worker(
 
 
 def _batched(
-    iterable: Iterable[Dict[str, str]], batch_size: int
-) -> Iterator[List[Dict[str, str]]]:
+    iterable: Iterable[SampleRecord], batch_size: int
+) -> Iterator[List[SampleRecord]]:
     batch: List[Dict[str, str]] = []
     for item in iterable:
         batch.append(item)
