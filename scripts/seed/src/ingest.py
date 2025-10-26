@@ -74,6 +74,7 @@ def upsert_samples(
     progress = tqdm(
         desc="Uploading to Weaviate",
         unit="obj",
+        disable=True,
     )
     total = 0
     if hasattr(collection, "batch"):

@@ -60,7 +60,9 @@ def _embed(
     if batch_size <= 0:
         raise ValueError("batch_size must be positive.")
 
-    progress = tqdm(desc="Generating embeddings with OpenAI", unit="sample")
+    progress = tqdm(
+        desc="Generating embeddings with OpenAI", unit="sample", disable=True
+    )
     ctx = get_context("spawn")
 
     def task_iter() -> Iterator[Tuple[List[Dict[str, str]], str, str]]:
