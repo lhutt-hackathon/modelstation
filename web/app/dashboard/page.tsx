@@ -83,7 +83,7 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
 
   // Fetch models
-  const { data: modelsData, isLoading: modelsLoading } = useQuery<ApiResponse<{ models: Model[]; count: number }>>({
+  const { data: modelsData, isLoading: modelsLoading } = useQuery<{ models: Model[]; count: number }>({
     queryKey: ["models"],
     queryFn: async () => {
       const response = await fetch("/api/models", {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
     },
   });
 
-  const models = modelsData?.data?.models || [];
+  const models = modelsData?.models || [];
 
   // Fetch pods
   const { data: podsData, isLoading } = useQuery<ApiResponse<{ pods: Pod[]; count: number }>>({
@@ -211,6 +211,33 @@ export default function DashboardPage() {
     },
   });
 
+  // Launch training mutation
+  const launchTrainingMutation = useMutation({
+    mutationFn: async (modelId: string) => {
+      const response = await fetch(`/api/models/train`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ model_id: modelId }),
+      });
+      if (!response.ok) throw new Error("Failed to launch training");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["models"] });
+      toast.success("Training launched successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to launch training: ${error.message}`);
+    },
+  });
+
+  const handleLaunchTraining = (modelId: string) => {
+    launchTrainingMutation.mutate(modelId);
+  };
+
   const getStatusBadge = (status?: string) => {
     switch (status?.toLowerCase()) {
       case "running":
@@ -219,6 +246,15 @@ export default function DashboardPage() {
         return <Badge variant="secondary">Stopped</Badge>;
       case "exited":
         return <Badge variant="destructive">Exited</Badge>;
+      case "training":
+        return <Badge className="bg-blue-500">Training</Badge>;
+      case "pending":
+        return <Badge variant="outline">Pending</Badge>;
+      case "ready":
+      case "completed":
+        return <Badge className="bg-green-500">Ready</Badge>;
+      case "failed":
+        return <Badge variant="destructive">Failed</Badge>;
       default:
         return <Badge variant="outline">{status || "Unknown"}</Badge>;
     }
@@ -274,6 +310,41 @@ export default function DashboardPage() {
             </Button>
           </div>
 
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Models</CardTitle>
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{models.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Training</CardTitle>
+                <Activity className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {models.filter((m) => m.status?.toLowerCase() === "training").length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ready</CardTitle>
+                <Activity className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {models.filter((m) => m.status?.toLowerCase() === "ready" || m.status?.toLowerCase() === "completed").length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Your Models</CardTitle>
@@ -301,37 +372,60 @@ export default function DashboardPage() {
                   </Button>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {models.map((model) => (
-                      <TableRow key={model.id}>
-                        <TableCell className="font-medium">{model.name}</TableCell>
-                        <TableCell>{getStatusBadge(model.status)}</TableCell>
-                        <TableCell>
-                          {new Date(model.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteModelClick(model.id)}
-                            disabled={deleteModelMutation.isPending}
-                          >
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </TableCell>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Base Model</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Updated</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {models.map((model) => (
+                        <TableRow key={model.id}>
+                          <TableCell className="font-medium">{model.name}</TableCell>
+                          <TableCell>{getStatusBadge(model.status)}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {model.base_model || "flux-dev"}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(model.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(model.updated_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {model.status?.toLowerCase() === "pending" && (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => handleLaunchTraining(model.id)}
+                                  disabled={launchTrainingMutation.isPending}
+                                >
+                                  <Play className="h-3 w-3 mr-1" />
+                                  Launch Training
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteModelClick(model.id)}
+                                disabled={deleteModelMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

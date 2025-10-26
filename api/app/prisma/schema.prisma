@@ -42,6 +42,7 @@ model Model {
 
   dataset     Dataset[]
   training    Training[]
+  pod         Pod[]
 
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -52,6 +53,16 @@ model Model {
   @@map("models")
 }
 
+model Pod {
+  id    String @id
+  name String
+
+  model       Model   @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  modelId     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
 model Dataset {
   id          String   @id @default(cuid())

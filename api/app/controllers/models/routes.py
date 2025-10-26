@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 from app.lib.auth import get_current_user
+from app.lib.runpod import create_pod, RunPodError
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -16,6 +17,12 @@ class CreateModelRequest(BaseModel):
     name: str
     prompt: str
     base_model: str = "flux-dev"
+
+
+class LaunchTrainingRequest(BaseModel):
+    """Request to launch training for a model."""
+
+    model_id: str
 
 
 class ModelResponse(BaseModel):
@@ -153,4 +160,97 @@ async def delete_model(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete model: {str(e)}",
+        ) from e
+
+
+@router.post("/train")
+async def launch_training(
+    req: Request,
+    request: LaunchTrainingRequest,
+    user_id: Annotated[str, Depends(get_current_user)],
+) -> dict:
+    """
+    Launch training for a model.
+
+    Creates a RunPod with the 'test:v1' image and passes the model ID as UID env var.
+    Updates the model status to 'training' and the training entry status to 'running'.
+    """
+    db = req.app.state.prisma
+
+    try:
+        # Check if model exists and belongs to user
+        model = await db.model.find_first(
+            where={"id": request.model_id, "userId": user_id}
+        )
+
+        if not model:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Model not found",
+            )
+
+        # Check if model is in pending status
+        if model.status != "pending":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot launch training for model with status '{model.status}'",
+            )
+
+        # Create RunPod with model ID as environment variable
+        pod_name = f"training-{model.name}-{model.id[:8]}"
+        try:
+            pod_response = create_pod(
+                name=pod_name,
+                image_name="0x21x/finetune:v1",
+                env={"UID": model.id},
+            )
+            pod_id = pod_response.get("id") if pod_response else None
+
+            if not pod_id:
+                raise RunPodError("Pod creation did not return a pod ID")
+        except RunPodError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create training pod: {str(e)}",
+            ) from e
+
+        # Save pod to database
+        await db.pod.create(
+            data={
+                "id": pod_id,
+                "name": pod_name,
+                "modelId": request.model_id,
+            }
+        )
+
+        # Update model status to training
+        await db.model.update(
+            where={"id": request.model_id},
+            data={"status": "training"},
+        )
+
+        # Update training entry status to running
+        training = await db.training.find_first(
+            where={"modelId": request.model_id}
+        )
+
+        if training:
+            await db.training.update(
+                where={"id": training.id},
+                data={"status": "running"},
+            )
+
+        return {
+            "message": "Training launched successfully",
+            "model_id": request.model_id,
+            "pod_id": pod_id,
+            "status": "training",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to launch training: {str(e)}",
         ) from e

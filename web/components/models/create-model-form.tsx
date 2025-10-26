@@ -98,7 +98,7 @@ export function CreateModelForm() {
 
     const baseModelLabel =
       baseModelOptions.find((option) => option.value === formState.baseModel)?.label ?? formState.baseModel;
-    
+
     try {
       const response = await fetch("/api/models", {
         method: "POST",

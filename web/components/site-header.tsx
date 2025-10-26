@@ -17,8 +17,6 @@ type NavItem = {
 };
 
 const BASE_NAV: NavItem[] = [
-  { href: "/", label: "Datasets", match: /^\/$/ },
-  { href: "/models", label: "Models", match: /^\/models/ },
   { href: "/dashboard", label: "Dashboard", match: /^\/dashboard/ }
 ];
 
@@ -28,9 +26,6 @@ export function SiteHeader() {
   const { user, logout, isReady } = useUser();
 
   const navItems = useMemo(() => {
-    if (user) {
-      return [...BASE_NAV, { href: "/workspace" as Route, label: "Workspace", match: /^\/workspace/ }];
-    }
     return BASE_NAV;
   }, [user]);
 
