@@ -1,0 +1,18 @@
+[project]
+name = "train"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40.59",
+    "dotenv>=0.9.9",
+    "fastapi>=0.120.0",
+    "huggingface-hub>=0.36.0",
+    "pydantic-settings>=2.11.0",
+    "torch>=2.8.0",
+    "unsloth>=2025.10.9",
+    "unsloth-zoo>=2025.10.10",
+    "uuid>=1.30",
+    "uvicorn>=0.38.0",
+]
