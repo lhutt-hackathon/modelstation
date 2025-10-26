@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowRightIcon } from "lucide-react";
 
 import { buttonVariants, Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -24,7 +24,7 @@ const BASE_NAV: NavItem[] = [
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isReady } = useAuth();
+  const { user, logout, isReady } = useUser();
 
   const navItems = useMemo(() => {
     if (user) {

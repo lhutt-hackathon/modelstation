@@ -1,17 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, LogInIcon, SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/use-auth";
-
-type Mode = "login" | "register";
+import { useUser } from "@/hooks/use-user";
 
 export default function LoginPage() {
   return (
@@ -29,23 +27,11 @@ export default function LoginPage() {
 
 function LoginView() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { login, register, user, isReady } = useAuth();
+  const { login, user, isReady } = useUser();
 
-  const [mode, setMode] = useState<Mode>("login");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const isDemoShortcut = useMemo(() => searchParams.get("demo") === "true", [searchParams]);
-
-  useEffect(() => {
-    if (isDemoShortcut) {
-      setEmail("demo@modelstation.ai");
-      setPassword("modelstation");
-    }
-  }, [isDemoShortcut]);
 
   useEffect(() => {
     if (isReady && user) {
@@ -58,17 +44,10 @@ function LoginView() {
     setIsSubmitting(true);
 
     try {
-      if (mode === "login") {
-        await login({ email, password });
-        toast.success("Welcome back!", {
-          description: "You’re signed in. Head to your workspace to see your portfolio."
-        });
-      } else {
-        await register({ name, email, password });
-        toast.success("Workspace created", {
-          description: "We’ve spun up a new workspace just for you."
-        });
-      }
+      await login({ email, password });
+      toast.success("Welcome back!", {
+        description: "You're signed in. Head to your workspace to see your portfolio."
+      });
       router.replace("/workspace");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Something went wrong. Please try again.";
@@ -81,9 +60,7 @@ function LoginView() {
   const fillDemoAccount = () => {
     setEmail("demo@modelstation.ai");
     setPassword("modelstation");
-    toast.info("Demo credentials filled", {
-      description: "Email: demo@modelstation.ai · Password: modelstation"
-    });
+    toast.info("Demo credentials filled");
   };
 
   return (
@@ -93,8 +70,8 @@ function LoginView() {
         <div className="absolute bottom-20 right-12 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,_rgba(69,219,202,0.32)_0%,_rgba(245,107,167,0.24)_60%,_transparent_78%)] blur-3xl" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 lg:flex-row">
-        <Card className="flex-1 border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-xl shadow-primary/15 backdrop-blur">
+      <div className="mx-auto w-full max-w-md">
+        <Card className="border border-border/60 bg-gradient-to-br from-card/95 via-card/90 to-primary/10 shadow-xl shadow-primary/15 backdrop-blur">
           <CardHeader className="space-y-3">
             <Button asChild variant="ghost" size="sm" className="w-fit px-3 text-muted-foreground">
               <Link href="/">
@@ -102,32 +79,13 @@ function LoginView() {
                 Back to site
               </Link>
             </Button>
-            <CardTitle className="text-3xl font-semibold text-foreground">
-              {mode === "login" ? "Welcome back" : "Create your workspace"}
-            </CardTitle>
+            <CardTitle className="text-3xl font-semibold text-foreground">Welcome back</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              {mode === "login"
-                ? "Use your email address and password to access ModelStation."
-                : "Spin up a sandboxed workspace so you can orchestrate model fine-tunes end-to-end."}
+              Sign in to access your ModelStation workspace
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {mode === "register" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground" htmlFor="name">
-                    Full name
-                  </label>
-                  <Input
-                    id="name"
-                    placeholder="Avery Steward"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    required
-                  />
-                </div>
-              )}
-
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground" htmlFor="email">
                   Email address
@@ -150,8 +108,8 @@ function LoginView() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter a secure password"
-                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
@@ -161,65 +119,20 @@ function LoginView() {
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 <LogInIcon className="mr-2 h-4 w-4" />
-                {mode === "login" ? "Log in" : "Create account"}
+                Log in
               </Button>
             </form>
 
-            <div className="mt-6 grid gap-3">
+            <div className="mt-6">
               <Button
                 type="button"
                 variant="outline"
                 onClick={fillDemoAccount}
-                className="w-full border-dashed text-sm text-muted-foreground"
+                className="w-full border-dashed text-sm"
               >
                 <SparklesIcon className="mr-2 h-4 w-4 text-primary" />
-                Autofill demo credentials
+                Use demo account
               </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Demo account · email: demo@modelstation.ai · password: modelstation
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="flex-1 border border-border/60 bg-gradient-to-br from-background/70 via-card/80 to-accent/10 p-6 shadow-lg shadow-accent/15 backdrop-blur">
-          <CardHeader className="space-y-3">
-            <CardTitle className="text-2xl font-semibold">Why sign in?</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Access a private workspace with your models, training briefs, and evaluation artifacts. Everything stays
-              isolated to your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 text-sm text-muted-foreground">
-            <div>
-              <p className="font-medium text-foreground">Manage your portfolio</p>
-              <p>Launch fine-tunes, scope the data runs that fuel them, and review evaluation outcomes from one dashboard.</p>
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Guardrailed access</p>
-              <p>Workspace membership controls who can edit policies, training briefs, and deployment-ready checkpoints.</p>
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Stay audit ready</p>
-              <p>Every fine-tune stores provenance metadata, evaluation deltas, and human review sign-offs.</p>
-            </div>
-
-            <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-4 text-xs text-primary">
-              Looking for enterprise SSO or SCIM provisioning? Reach out at{" "}
-              <a className="underline" href="mailto:hello@modelstation.ai">
-                hello@modelstation.ai
-              </a>
-              .
-            </div>
-
-            <div className="border-t border-border/60 pt-4 text-center">
-              <button
-                type="button"
-                className="text-sm text-primary underline underline-offset-4"
-                onClick={() => setMode(mode === "login" ? "register" : "login")}
-              >
-                {mode === "login" ? "Need an account? Create one." : "Already have an account? Log in."}
-              </button>
             </div>
           </CardContent>
         </Card>
