@@ -1,5 +1,6 @@
 from fastapi import FastAPI as FastAPIBase
 
+from app.lifespan import lifespan
 
 class FastAPI(FastAPIBase):
     def _setup_routers(self) -> None:
@@ -12,4 +13,4 @@ class FastAPI(FastAPIBase):
         self._setup_routers()
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)

@@ -5,7 +5,10 @@ description = "API service for ModelStation"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "bcrypt>=5.0.0",
     "fastapi[standard]>=0.120.0",
+    "prisma>=0.15.0",
+    "pydantic>=2.12.3",
     "uvicorn>=0.38.0",
 ]
 

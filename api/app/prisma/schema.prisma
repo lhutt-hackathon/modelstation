@@ -1,0 +1,84 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+model User {
+  id        String          @id @default(cuid())
+  email     String          @unique
+  password  String
+  name      String
+  role      String          @default("user")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  model     Model[]
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Model {
+  id          String   @id @default(cuid())
+
+  name        String
+  status      String
+  baseModel   String
+
+  dataset     Dataset[]
+  training    Training[]
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("models")
+}
+
+
+model Dataset {
+  id          String   @id @default(cuid())
+
+  name        String
+  status      String
+
+  model       Model   @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  modelId     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("datasets")
+}
+
+
+model Training {
+  id          String   @id @default(cuid())
+
+  status      String
+
+  model       Model   @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  modelId     String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("trainings")
+}
