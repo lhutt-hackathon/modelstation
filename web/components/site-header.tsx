@@ -18,7 +18,8 @@ type NavItem = {
 
 const BASE_NAV: NavItem[] = [
   { href: "/", label: "Datasets", match: /^\/$/ },
-  { href: "/models", label: "Models", match: /^\/models/ }
+  { href: "/models", label: "Models", match: /^\/models/ },
+  { href: "/dashboard", label: "Dashboard", match: /^\/dashboard/ }
 ];
 
 export function SiteHeader() {

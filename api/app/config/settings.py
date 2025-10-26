@@ -16,5 +16,8 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     return_path: str = "http://localhost:3000/"
 
+    # RunPod API configuration
+    RUNPOD_KEY: SecretStr | None = Field(default=None)
+
 
 settings = Settings()

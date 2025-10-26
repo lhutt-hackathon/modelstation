@@ -25,4 +25,5 @@ ENV PATH="/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
 RUN prisma generate --schema app/prisma/schema.prisma
+RUN prisma migrate deploy --schema app/prisma/schema.prisma
 CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "8000"]

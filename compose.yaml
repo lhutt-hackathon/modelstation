@@ -4,7 +4,12 @@ services:
       context: api
       dockerfile: Dockerfile
     environment:
+      - SESSION_SECRET=${SESSION_SECRET}
       - DATABASE_URL=${DATABASE_URL}
+      - RUNPOD_KEY=${RUNPOD_KEY}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
     develop:
       watch:
         - action: rebuild
