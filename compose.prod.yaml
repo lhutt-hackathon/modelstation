@@ -4,11 +4,6 @@ services:
       file: compose.yaml
       service: api
 
-  manager:
-    extends:
-      file: compose.yaml
-      service: manager
-
   web:
     extends:
       file: compose.yaml
