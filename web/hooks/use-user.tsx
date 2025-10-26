@@ -1,14 +1,31 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
-// Types matching the backend API
+export type ModelRecord = {
+  id: string;
+  name: string;
+  baseModel: string;
+  dataset: string;
+  status: "Queued" | "Training" | "QA" | "Live";
+  createdAt: string;
+  updatedAt: string;
+  objective: string;
+  successCriteria: string;
+  guardrailsEnabled: boolean;
+  dryRun: boolean;
+  notes: string;
+  evaluationSuites: string[];
+};
+
 export type User = {
   id: string;
   email: string;
   name: string;
   role: string;
+  models?: ModelRecord[]; // Optional for now, can be fetched separately
 };
 
 type AuthResponse = {
@@ -35,7 +52,6 @@ type RegisterInput = {
   password: string;
 };
 
-// Token management
 const TOKEN_STORAGE_KEY = "modelstation:token";
 
 function getToken(): string | null {
@@ -52,7 +68,6 @@ function setToken(token: string | null) {
   }
 }
 
-// API client
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -112,6 +127,7 @@ export const userKeys = {
 type UserContextValue = {
   user: User | null;
   isLoading: boolean;
+  isReady: boolean; // Inverted isLoading for compatibility
   isError: boolean;
   error: Error | null;
   login: (input: LoginInput) => Promise<void>;
@@ -125,6 +141,7 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 // Provider component
 export function UserProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Query for current user
   const {
@@ -166,18 +183,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setToken(null);
       queryClient.setQueryData(userKeys.current(), null);
       queryClient.clear();
+      router.push("/login");
     },
     onError: () => {
       // Always clear on logout, even if API call fails
       setToken(null);
       queryClient.setQueryData(userKeys.current(), null);
       queryClient.clear();
+      router.push("/login");
     },
   });
 
   const contextValue: UserContextValue = {
     user,
     isLoading,
+    isReady: !isLoading, // Inverted for compatibility with old code
     isError,
     error: error as Error | null,
     login: async (input: LoginInput) => {

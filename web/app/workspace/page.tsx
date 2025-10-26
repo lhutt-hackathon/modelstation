@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-user";
 
 const pipelineStages = [
   {
@@ -39,10 +39,10 @@ const pipelineStages = [
 ] as const;
 
 export default function WorkspacePage() {
-  const { user, isReady } = useAuth();
+  const { user, isReady } = useUser();
 
   const sortedModels = useMemo(() => {
-    if (!user) return [];
+    if (!user || !user.models) return [];
     return [...user.models].sort(
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
